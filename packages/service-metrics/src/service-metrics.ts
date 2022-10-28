@@ -2,6 +2,7 @@
    metrics on an exporter */
 
 import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
+import { Counter, Histogram, ObservableGauge, Meter } from '@opentelemetry/api-metrics'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { BasicTracerProvider, TraceIdRatioBasedSampler,
@@ -19,14 +20,8 @@ export const CONCURRENCY_LIMIT = 1
 export const TRACE_CONCURRENCY_LIMIT = 1
 export const DEFAULT_TRACE_SAMPLE_RATIO = 0.1
 
-enum LOG_LEVEL {
-    debug,
-    info,
-    warn,
-    imp,
-    error
-}
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-empty-function */
 class _NullLogger {
   debug(msg){}
   info(msg){}
@@ -34,6 +29,8 @@ class _NullLogger {
   warn(msg){}
   err(msg){}
 }
+/* eslint-enable @typescript-eslint/no-unused-vars */
+/* eslint-enable @typescript-eslint/no-empty-function */
 
 interface Endable {
    end(endTime?: TimeInput): void;
@@ -43,6 +40,7 @@ class NullSpan implements Endable {
   // if we start using other span methods, add null methods here
 
   // Returns the flag whether this span will be recorded.
+  // @ts-ignore
   end(endTime?: TimeInput) {
       return false
   }
@@ -55,7 +53,7 @@ class _ServiceMetrics {
   protected readonly histograms
   protected meter
   protected tracer
-  protected logger
+  protected logger: any
   constructor() {
     this.caller = ''
     this.counters = {}
