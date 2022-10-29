@@ -13,10 +13,6 @@
   "files": [
     "dist"
   ],
-  "engines": {
-    "node": ">=14.14"
-  },
-  "sideEffects": false,
   "scripts": {
     "build:clean": "del dist",
     "build:js": "swc src -d ./dist --config-file ../../.swcrc",
@@ -26,7 +22,9 @@
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
     "test:ci": "pnpm run test --ci --coverage",
     "prepare": "pnpm run build",
-    "prepublishOnly": "package-check"
+    "prepublishOnly": "package-check",
+    "size": "./node_modules/.bin/size-limit",
+    "analyze": "./node_modules/.bin/size-limit --why"
   },
   "repository": {
     "type": "git",
