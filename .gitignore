@@ -3,5 +3,8 @@ lib/
 coverage/
 dist/
 .idea
+package-lock.json
 *.log
+*.d.ts
+*.d.ts.map
 .DS_Store
