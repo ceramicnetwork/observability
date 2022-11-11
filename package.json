@@ -1,5 +1,5 @@
 {
-  "name": "@ceramicnetwork/observability",
+  "name": "ceramic-observability",
   "version": "1.0.0",
   "private": false,
   "packageManager": "pnpm@7.9.0",
