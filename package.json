@@ -1,6 +1,6 @@
 {
   "name": "ceramic-observability",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": false,
   "packageManager": "pnpm@7.9.0",
   "workspaces": [
@@ -9,7 +9,7 @@
   "scripts": {
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "build": "turbo run build",
+    "build": "pnpm run -r build:types && turbo run build:js",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "dependencies": {
