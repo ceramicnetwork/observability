@@ -211,7 +211,11 @@ class _ServiceMetrics {
       this.counters[name] = this.meter.createCounter(`${this.caller}:${name}`)
     }
     // Add to the count
-    this.counters[name].add(value, params)
+    if (params) {
+      this.counters[name].add(value, params)
+    } else {
+      this.counters[name].add(value)
+    }
   }
 
   record(name: string, value: number, params?: any) {
@@ -224,7 +228,11 @@ class _ServiceMetrics {
       this.histograms[name] = this.meter.createHistogram(`${this.caller}:${name}`)
     }
     // Record the observed value
-    this.histograms[name].record(value, params)
+    if (params) {
+      this.histograms[name].record(value, params)
+    } else {
+      this.histograms[name].record(value)
+    }
   }
 
   observe(name: string, value: number, params?: any) {
@@ -237,7 +245,11 @@ class _ServiceMetrics {
       this.gauges[name] = this.meter.createObservableGauge(`${this.caller}:${name}`)
     }
     // Record the observed value
-    this.gauges[name].observe(value, params)
+    if (params) {
+      this.gauges[name].observe(value, params)
+    } else {
+      this.gauges[name].observe(value)
+    }
   }
 
   recordAverage(name: string, arr: number[]) {
