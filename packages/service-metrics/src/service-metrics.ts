@@ -19,18 +19,6 @@ export const CONCURRENCY_LIMIT = 1
 export const TRACE_CONCURRENCY_LIMIT = 1
 export const DEFAULT_TRACE_SAMPLE_RATIO = 0.1
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-empty-function */
-class _NullLogger {
-  debug(msg){}
-  info(msg){}
-  imp(msg){}
-  warn(msg){}
-  err(msg){}
-}
-/* eslint-enable @typescript-eslint/no-unused-vars */
-/* eslint-enable @typescript-eslint/no-empty-function */
-
 interface Endable {
    end(endTime?: TimeInput): void;
 }
@@ -110,6 +98,7 @@ class _ServiceMetrics {
   protected meter
   protected tracer
   protected logger
+  protected append_total_to_counters
   constructor() {
     this.caller = ''
     this.counters = {}
@@ -118,6 +107,7 @@ class _ServiceMetrics {
     this.meter = null
     this.tracer = null
     this.logger = null
+    this.append_total_to_counters = true
   }
 
   /* Set up the exporter at run time, after we have read the configuration */
@@ -125,7 +115,8 @@ class _ServiceMetrics {
     collectorHost = '',
     caller: string = UNKNOWN_CALLER,
     sample_ratio: number = DEFAULT_TRACE_SAMPLE_RATIO,
-    logger: any = null
+    logger: any = null,
+    append_total_to_counters: boolean = true
   ) {
     this.caller = caller
     const meterProvider = new MeterProvider({
@@ -177,7 +168,10 @@ class _ServiceMetrics {
     this.tracer = trace.getTracer(caller)
 
     // accept a logger from the caller
-    this.logger = logger || new _NullLogger()
+    this.logger = logger
+
+    // behavior about counter naming to be backward-compatible
+    this.append_total_to_counters = append_total_to_counters
   }
 
   // could have subclasses or specific functions with set params, but we want to
@@ -208,7 +202,9 @@ class _ServiceMetrics {
     }
     // Create this counter if we have not already
     if (!(name in this.counters)) {
-      this.counters[name] = this.meter.createCounter(`${this.caller}:${name}_total`)
+      const full_name = this.append_total_to_counters ? 
+                          `${this.caller}:${name}_total` : `${this.caller}:${name}`
+      this.counters[name] = this.meter.createCounter(full_name)
     }
     // Add to the count
     if (params) {
@@ -258,6 +254,50 @@ class _ServiceMetrics {
       return
     }
     this.record(name, Utils.averageArray(arr))
+  }
+
+  recordObjectFields(prefix:string, obj: object): void {
+    Object.entries(obj).foreach(([key, value]) => {
+      if (typeof value === "number") {
+        this.record( prefix + '_' + String(key), value)
+      }
+    })
+  }
+
+  recordRatio(name: string, numer: number, denom: number, digits = 2): void {
+
+    if (denom == 0) {
+       this.log_warn(`Attempt to record ratio w zero denominator: ${name}`)
+       return
+    }
+    this.record(name, Number.parseFloat(numer/denom).toFixed(digits))
+  }
+
+  log_info(message: string): void {
+    if (! this.logger) {
+      return
+    }
+    try {
+      this.logger.info(message)
+    } catch {}
+  }
+
+  log_warn(message: string): void {
+    if (! this.logger) {
+      return
+    }
+    try {
+      this.logger.warn(message)
+    } catch {}
+  }
+
+  log_err(message: string): void {
+    if (! this.logger) {
+      return
+    }
+    try {
+      this.logger.err(message)
+    } catch {}
   }
 }
 
