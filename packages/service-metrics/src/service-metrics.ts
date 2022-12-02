@@ -257,7 +257,7 @@ class _ServiceMetrics {
   }
 
   recordObjectFields(prefix:string, obj: object): void {
-    Object.entries(obj).foreach(([key, value]) => {
+    Object.entries(obj).forEach(([key, value]) => {
       if (typeof value === "number") {
         this.record( prefix + '_' + String(key), value)
       }
@@ -270,7 +270,7 @@ class _ServiceMetrics {
        this.log_warn(`Attempt to record ratio w zero denominator: ${name}`)
        return
     }
-    this.record(name, Number.parseFloat(numer/denom).toFixed(digits))
+    this.record(name, numer/denom)
   }
 
   log_info(message: string): void {
