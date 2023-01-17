@@ -231,23 +231,6 @@ class _ServiceMetrics {
     }
   }
 
-  observe(name: string, value: number, params?: any) {
-    // If not initialized, just return
-    if (!this.meter) {
-      return
-    }
-    // Create this Gauge if we have not already
-    if (!(name in this.gauges)) {
-      this.gauges[name] = this.meter.createObservableGauge(`${this.caller}:${name}`)
-    }
-    // Record the observed value
-    if (params) {
-      this.gauges[name].observe(value, params)
-    } else {
-      this.gauges[name].observe(value)
-    }
-  }
-
   recordAverage(name: string, arr: number[]) {
     // if array is empty, just return
     if (arr.length <= 0) {

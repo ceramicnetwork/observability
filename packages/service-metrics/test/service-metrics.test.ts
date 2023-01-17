@@ -6,6 +6,7 @@ import { expect, jest} from '@jest/globals'
  * Just exercise the existence of the methods and parameters
  *
  */
+
 describe('simple test of metrics', () => {
   beforeAll(async () => {
     ServiceMetrics.start('', 'test')
@@ -53,7 +54,6 @@ describe('simple test of metrics', () => {
       intparam: 2,
     })
     ServiceMetrics.record('test_metric', 5, { newparam: 9 })
-    ServiceMetrics.observe('test_metric', 3)
   })
 
   test('record ratio', async () => {
