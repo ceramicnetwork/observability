@@ -29,7 +29,13 @@ describe('simple test of metrics', () => {
       otherparam: 'atring',
       intparam: 2,
     })
+    ServiceMetrics.observe('test_metric', 1, {
+      anyparam: null,
+      otherparam: 'atring',
+      intparam: 2,
+    })
   })
+
 
   test('create metric and add values', async () => {
     ServiceMetrics.count('test_metric', 1, {
@@ -54,6 +60,9 @@ describe('simple test of metrics', () => {
       intparam: 2,
     })
     ServiceMetrics.record('test_metric', 5, { newparam: 9 })
+
+    ServiceMetrics.observe('test_metric', 1)
+    ServiceMetrics.observe('test_metric', 2)
   })
 
   test('record ratio', async () => {

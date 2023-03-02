@@ -214,6 +214,25 @@ class _ServiceMetrics {
     }
   }
 
+
+  observe(name: string, value: number, params?: any) {
+    // If not initialized, just return
+    if (!this.meter) {
+      return
+    }
+    // Create this ObservableGauge if we have not already
+    if (!(name in this.gauges)) {
+      this.gauges[name] = this.meter.createObservableGauge(`${this.caller}:${name}`)
+    }
+    // Record the observed value
+    if (params) {
+      this.gauges[name].update(value, params)
+    } else {
+      this.gauges[name].update(value)
+    }
+  }
+
+
   record(name: string, value: number, params?: any) {
     // If not initialized, just return
     if (!this.meter) {
