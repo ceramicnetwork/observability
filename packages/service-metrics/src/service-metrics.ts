@@ -8,7 +8,7 @@ import { BasicTracerProvider, TraceIdRatioBasedSampler,
          ParentBasedSampler, BatchSpanProcessor } from '@opentelemetry/sdk-trace-base'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { Resource } from '@opentelemetry/resources'
-import {trace} from '@opentelemetry/api'
+import {trace, ObservableResult} from '@opentelemetry/api'
 
 import { Utils } from './utils.js'
 import {TimeInput} from "@opentelemetry/api/build/src/common/Time";
@@ -95,6 +95,7 @@ class _ServiceMetrics {
   protected readonly counters
   protected readonly gauges
   protected readonly histograms
+  protected readonly observations
   protected meter
   protected tracer
   protected logger
@@ -103,6 +104,7 @@ class _ServiceMetrics {
     this.caller = ''
     this.counters = {}
     this.gauges = {}
+    this.observations = {}
     this.histograms = {}
     this.meter = null
     this.tracer = null
@@ -172,6 +174,7 @@ class _ServiceMetrics {
 
     // behavior about counter naming to be backward-compatible
     this.append_total_to_counters = append_total_to_counters
+
   }
 
   // could have subclasses or specific functions with set params, but we want to
@@ -223,13 +226,17 @@ class _ServiceMetrics {
     // Create this ObservableGauge if we have not already
     if (!(name in this.gauges)) {
       this.gauges[name] = this.meter.createObservableGauge(`${this.caller}:${name}`)
+      this.observations[name] = []
+      this.gauges[name].addCallback((observableResult: ObservableResult) => {
+        for (const [value, params] of this.observations[name]) {
+            observableResult.observe(value, params)
+        }
+        this.observations[name] = []
+      })
     }
-    // Record the observed value
-    if (params) {
-      this.gauges[name].update(value, params)
-    } else {
-      this.gauges[name].update(value)
-    }
+
+    // Record the observed value; it will be set in the callback when metrics are recorded
+    this.observations[name].append( [value, params] )
   }
 
 
