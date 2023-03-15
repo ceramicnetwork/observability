@@ -236,7 +236,7 @@ class _ServiceMetrics {
     }
 
     // Record the observed value; it will be set in the callback when metrics are recorded
-    this.observations[name].append( [value, params] )
+    this.observations[name].push( [value, params] )
   }
 
 
