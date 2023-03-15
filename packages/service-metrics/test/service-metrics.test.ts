@@ -1,5 +1,7 @@
 import { ServiceMetrics } from '../src/service-metrics.js'
 import { expect, jest} from '@jest/globals'
+import { createServer } from 'http'
+
 
 /*
  * Without exporter, all methods are essentially no-ops
@@ -8,9 +10,27 @@ import { expect, jest} from '@jest/globals'
  */
 
 describe('simple test of metrics', () => {
+  let server
+
   beforeAll(async () => {
-    ServiceMetrics.start('', 'test')
+    server = createServer((req, res) => {
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk;
+      });
+      req.on('end', () => {
+        console.log(`Received metrics:\n${body}`);
+        res.end();
+      });
+    }).listen(3000);
+    ServiceMetrics.start('localhost:3000', 'test')
   })
+
+  afterAll(async () => {
+    await server.close();
+    console.log('Server has been shut down');
+  })
+
   test('trace span', async() => {
     // We only check here if we *can call* the methods
     const span = ServiceMetrics.startSpan("doing it")
