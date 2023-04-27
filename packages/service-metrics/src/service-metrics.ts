@@ -100,7 +100,10 @@ class _ServiceMetrics {
   protected tracer
   protected logger
   protected append_total_to_counters
-  constructor() {
+
+  private static instance: _ServiceMetrics
+
+  private constructor() {
     this.caller = ''
     this.counters = {}
     this.gauges = {}
@@ -110,6 +113,13 @@ class _ServiceMetrics {
     this.tracer = null
     this.logger = null
     this.append_total_to_counters = true
+  }
+
+  public static getInstance(): _ServiceMetrics {
+    if (!_ServiceMetrics.instance) {
+       _ServiceMetrics.instance = new _ServiceMetrics()
+    }
+    return _ServiceMetrics.instance
   }
 
   /* Set up the exporter at run time, after we have read the configuration */
@@ -310,4 +320,4 @@ class _ServiceMetrics {
   }
 }
 
-export const ServiceMetrics = new _ServiceMetrics()
+export const ServiceMetrics = _ServiceMetrics.getInstance()
