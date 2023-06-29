@@ -4,6 +4,7 @@
 import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { PrometheusExporter } from '@opentelemetry/exporter-prometheus'
 import {
   BasicTracerProvider, TraceIdRatioBasedSampler,
   ParentBasedSampler, BatchSpanProcessor
@@ -131,6 +132,7 @@ class _ServiceMetrics {
     sample_ratio: number = DEFAULT_TRACE_SAMPLE_RATIO,
     logger: any = null,
     append_total_to_counters: boolean = true,
+    prometheusExportPort: number = 0
   ) {
     this.caller = caller
     const meterProvider = new MeterProvider({
@@ -138,49 +140,56 @@ class _ServiceMetrics {
         [SemanticResourceAttributes.SERVICE_NAME]: caller,
       }),
     })
-
-    if (!collectorHost) {
-      // If no collector URL then the functions will be no-ops
+    if (!collectorHost && prometheusExportPort <= 0) {
+      // If no collector URL  or prometheusExportPort then the functions will be no-ops
       return
     }
+    if (prometheusExportPort > 0) {
+      const promExporter = new PrometheusExporter({ port: prometheusExportPort });
+      meterProvider.addMetricReader(promExporter);
+    }
 
-    const collectorURL = `http://${collectorHost}:4318/v1/metrics`
-    const traceCollectorURL = `http://${collectorHost}:4318/v1/traces`
 
-    const metricExporter = new OTLPMetricExporter({
-      url: collectorURL,
-      concurrencyLimit: CONCURRENCY_LIMIT,
-    })
-    meterProvider.addMetricReader(
-      new PeriodicExportingMetricReader({
-        exporter: metricExporter,
-        exportIntervalMillis: 1000,
+    if (collectorHost) {
+      const collectorURL = `http://${collectorHost}:4318/v1/metrics`
+      const traceCollectorURL = `http://${collectorHost}:4318/v1/traces`
+
+      const metricExporter = new OTLPMetricExporter({
+        url: collectorURL,
+        concurrencyLimit: CONCURRENCY_LIMIT,
       })
-    )
+      meterProvider.addMetricReader(
+        new PeriodicExportingMetricReader({
+          exporter: metricExporter,
+          exportIntervalMillis: 1000,
+        })
+      )
+
+      // now set up trace exporter
+      const traceExporter = new OTLPTraceExporter({
+        url: traceCollectorURL,
+        concurrencyLimit: TRACE_CONCURRENCY_LIMIT,
+      })
+
+      //reference: https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-sdk-trace-base
+      const traceProvider = new BasicTracerProvider({
+        sampler: new ParentBasedSampler({
+          // sample_ratio represents the percentage of traces which should
+          // be sampled.
+          root: new TraceIdRatioBasedSampler(sample_ratio),
+        }),
+      })
+
+      traceProvider.addSpanProcessor(new BatchSpanProcessor(traceExporter))
+      traceProvider.register()
+
+      // set up a tracer for the caller
+      this.tracer = trace.getTracer(caller)
+    }
 
     // Meter for calling application
     this.meter = meterProvider.getMeter(caller)
 
-    // now set up trace exporter
-    const traceExporter = new OTLPTraceExporter({
-      url: traceCollectorURL,
-      concurrencyLimit: TRACE_CONCURRENCY_LIMIT,
-    })
-
-    //reference: https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-sdk-trace-base
-    const traceProvider = new BasicTracerProvider({
-      sampler: new ParentBasedSampler({
-        // sample_ratio represents the percentage of traces which should
-        // be sampled.
-        root: new TraceIdRatioBasedSampler(sample_ratio),
-      }),
-    })
-
-    traceProvider.addSpanProcessor(new BatchSpanProcessor(traceExporter))
-    traceProvider.register()
-
-    // set up a tracer for the caller
-    this.tracer = trace.getTracer(caller)
 
     // accept a logger from the caller
     this.logger = logger
