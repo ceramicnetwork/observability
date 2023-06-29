@@ -4,14 +4,16 @@
 import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { BasicTracerProvider, TraceIdRatioBasedSampler,
-         ParentBasedSampler, BatchSpanProcessor } from '@opentelemetry/sdk-trace-base'
+import {
+  BasicTracerProvider, TraceIdRatioBasedSampler,
+  ParentBasedSampler, BatchSpanProcessor
+} from '@opentelemetry/sdk-trace-base'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { Resource } from '@opentelemetry/resources'
-import {trace, ObservableResult} from '@opentelemetry/api'
+import { trace, ObservableResult } from '@opentelemetry/api'
 
 import { Utils } from './utils.js'
-import {TimeInput} from "@opentelemetry/api/build/src/common/Time";
+import { TimeInput } from "@opentelemetry/api/build/src/common/Time";
 
 export const UNKNOWN_CALLER = 'Unknown'
 
@@ -20,7 +22,7 @@ export const TRACE_CONCURRENCY_LIMIT = 1
 export const DEFAULT_TRACE_SAMPLE_RATIO = 0.1
 
 interface Endable {
-   end(endTime?: TimeInput): void;
+  end(endTime?: TimeInput): void;
 }
 
 interface Timeable {
@@ -34,7 +36,7 @@ class NullSpan implements Endable {
   // Returns the flag whether this span will be recorded.
   // @ts-ignore
   end(endTime?: TimeInput) {
-      return false
+    return false
   }
 }
 
@@ -49,17 +51,17 @@ export class TimeableMetric {
   protected maxTime: number
   protected since: SinceField
 
-  constructor(since:SinceField) {
+  constructor(since: SinceField) {
     this.cnt = 0
     this.totTime = 0
     this.maxTime = 0
     this.since = since
-  } 
+  }
 
   public recordAll(requests: Timeable[]) {
-     for (const req of requests) {
-       this.record(req)
-     }
+    for (const req of requests) {
+      this.record(req)
+    }
   }
 
   public record(request: Timeable) {
@@ -78,10 +80,10 @@ export class TimeableMetric {
   }
 
   private getMeanTime(): number {
-    return this.totTime/this.cnt
+    return this.totTime / this.cnt
   }
 
-  public publishStats(name:string): void {
+  public publishStats(name: string): void {
     ServiceMetrics.count(name + '_total', this.cnt)
     ServiceMetrics.record(name + '_mean', this.getMeanTime())
     ServiceMetrics.record(name + '_max', this.maxTime)
@@ -117,7 +119,7 @@ class _ServiceMetrics {
 
   public static getInstance(): _ServiceMetrics {
     if (!_ServiceMetrics.instance) {
-       _ServiceMetrics.instance = new _ServiceMetrics()
+      _ServiceMetrics.instance = new _ServiceMetrics()
     }
     return _ServiceMetrics.instance
   }
@@ -128,7 +130,7 @@ class _ServiceMetrics {
     caller: string = UNKNOWN_CALLER,
     sample_ratio: number = DEFAULT_TRACE_SAMPLE_RATIO,
     logger: any = null,
-    append_total_to_counters: boolean = true
+    append_total_to_counters: boolean = true,
   ) {
     this.caller = caller
     const meterProvider = new MeterProvider({
@@ -141,6 +143,7 @@ class _ServiceMetrics {
       // If no collector URL then the functions will be no-ops
       return
     }
+
     const collectorURL = `http://${collectorHost}:4318/v1/metrics`
     const traceCollectorURL = `http://${collectorHost}:4318/v1/traces`
 
@@ -215,8 +218,8 @@ class _ServiceMetrics {
     }
     // Create this counter if we have not already
     if (!(name in this.counters)) {
-      const full_name = this.append_total_to_counters ? 
-                          `${this.caller}:${name}_total` : `${this.caller}:${name}`
+      const full_name = this.append_total_to_counters ?
+        `${this.caller}:${name}_total` : `${this.caller}:${name}`
       this.counters[name] = this.meter.createCounter(full_name)
     }
     // Add to the count
@@ -239,14 +242,14 @@ class _ServiceMetrics {
       this.observations[name] = []
       this.gauges[name].addCallback((observableResult: ObservableResult) => {
         for (const [value, params] of this.observations[name]) {
-            observableResult.observe(value, params)
+          observableResult.observe(value, params)
         }
         this.observations[name] = []
       })
     }
 
     // Record the observed value; it will be set in the callback when metrics are recorded
-    this.observations[name].push( [value, params] )
+    this.observations[name].push([value, params])
   }
 
 
@@ -275,10 +278,10 @@ class _ServiceMetrics {
     this.record(name, Utils.averageArray(arr))
   }
 
-  recordObjectFields(prefix:string, obj: object): void {
+  recordObjectFields(prefix: string, obj: object): void {
     Object.entries(obj).forEach(([key, value]) => {
       if (typeof value === "number") {
-        this.record( prefix + '_' + String(key), value)
+        this.record(prefix + '_' + String(key), value)
       }
     })
   }
@@ -286,37 +289,37 @@ class _ServiceMetrics {
   recordRatio(name: string, numer: number, denom: number, digits = 2): void {
 
     if (denom == 0) {
-       this.log_warn(`Attempt to record ratio w zero denominator: ${name}`)
-       return
+      this.log_warn(`Attempt to record ratio w zero denominator: ${name}`)
+      return
     }
-    this.record(name, numer/denom)
+    this.record(name, numer / denom)
   }
 
   log_info(message: string): void {
-    if (! this.logger) {
+    if (!this.logger) {
       return
     }
     try {
       this.logger.info(message)
-    } catch {}
+    } catch { }
   }
 
   log_warn(message: string): void {
-    if (! this.logger) {
+    if (!this.logger) {
       return
     }
     try {
       this.logger.warn(message)
-    } catch {}
+    } catch { }
   }
 
   log_err(message: string): void {
-    if (! this.logger) {
+    if (!this.logger) {
       return
     }
     try {
       this.logger.err(message)
-    } catch {}
+    } catch { }
   }
 }
 
