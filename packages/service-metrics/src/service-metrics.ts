@@ -228,7 +228,7 @@ class _ServiceMetrics {
     // Create this counter if we have not already
     if (!(name in this.counters)) {
       const full_name = this.append_total_to_counters ?
-        `${this.caller}:${name}_total` : `${this.caller}:${name}`
+        `${this.caller}_${name}_total` : `${this.caller}_${name}`
       this.counters[name] = this.meter.createCounter(full_name)
     }
     // Add to the count
