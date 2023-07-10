@@ -2,19 +2,24 @@
    metrics on an exporter */
 
 import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { PrometheusExporter } from '@opentelemetry/exporter-prometheus'
-import {
-  BasicTracerProvider, TraceIdRatioBasedSampler,
-  ParentBasedSampler, BatchSpanProcessor
-} from '@opentelemetry/sdk-trace-base'
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
-import { Resource } from '@opentelemetry/resources'
-import { trace, ObservableResult } from '@opentelemetry/api'
+import exporterMetricsOtlpHttp from '@opentelemetry/exporter-metrics-otlp-http'
+const { OTLPMetricExporter } = exporterMetricsOtlpHttp
+import exporterTraceOtlpHttp from '@opentelemetry/exporter-trace-otlp-http'
+const { OTLPTraceExporter } = exporterTraceOtlpHttp
+import exporterPrometheus from '@opentelemetry/exporter-prometheus'
+const { PrometheusExporter } = exporterPrometheus
+
+import sdkTraceBase from '@opentelemetry/sdk-trace-base'
+const { BasicTracerProvider, TraceIdRatioBasedSampler,
+  ParentBasedSampler, BatchSpanProcessor } = sdkTraceBase
+
+import semanticConventions from '@opentelemetry/semantic-conventions'
+const { SemanticResourceAttributes } = semanticConventions
+import resources from '@opentelemetry/resources'
+const { Resource } = resources
+import { trace, type ObservableResult, type TimeInput } from '@opentelemetry/api'
 
 import { Utils } from './utils.js'
-import { TimeInput } from "@opentelemetry/api/build/src/common/Time";
 
 export const UNKNOWN_CALLER = 'Unknown'
 
