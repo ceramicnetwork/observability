@@ -26,8 +26,6 @@ export const UNKNOWN_CALLER = 'Unknown'
 export const CONCURRENCY_LIMIT = 1
 export const TRACE_CONCURRENCY_LIMIT = 1
 export const DEFAULT_TRACE_SAMPLE_RATIO = 0.1
-export const DEFAULT_EXPORT_INTERVAL_MS = 60000 // one minute, is otlp default
-export const DEFAULT_EXPORT_TIMEOUT_MS = 30000  // 30 sec timeout, the otlp default
 
 interface Endable {
   end(endTime?: TimeInput): void;
@@ -139,9 +137,7 @@ class _ServiceMetrics {
     sample_ratio: number = DEFAULT_TRACE_SAMPLE_RATIO,
     logger: any = null,
     append_total_to_counters: boolean = true,
-    prometheusExportPort: number = 0,
-    exportIntervalMillis: number = DEFAULT_EXPORT_INTERVAL_MS,
-    exportTimeoutMillis: number = DEFAULT_EXPORT_TIMEOUT_MS
+    prometheusExportPort: number = 0
   ) {
     this.caller = caller
     const meterProvider = new MeterProvider({
@@ -170,8 +166,7 @@ class _ServiceMetrics {
       meterProvider.addMetricReader(
         new PeriodicExportingMetricReader({
           exporter: metricExporter,
-          exportIntervalMillis: exportIntervalMillis,
-          exportTimeoutMillis: exportTimeoutMillis
+          exportIntervalMillis: 1000,
         })
       )
 
