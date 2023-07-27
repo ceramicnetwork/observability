@@ -117,3 +117,40 @@ describe('simple test of metrics', () => {
   })
 
 })
+
+
+describe('test startup params', () => {
+  let server
+
+  beforeAll(async () => {
+    server = createServer((req, res) => {
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk;
+      });
+      req.on('end', () => {
+        console.log(`Received metrics:\n${body}`);
+        res.end();
+      });
+    }).listen(3000);
+  })
+
+  afterAll(async () => {
+    await server.close();
+    console.log('Server has been shut down');
+  })
+
+  test('all params', async() => {
+
+    ServiceMetrics.start(
+           'localhost:3000', 
+           'test',
+           1,
+           null,
+           false,
+           0,
+           1000,
+           500
+    )
+  })
+})
