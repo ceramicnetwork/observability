@@ -1,0 +1,15 @@
+type MetricEvent
+  @createModel(accountRelation: SINGLE, description: "MetricEvent") {
+  ts: DateTime!
+  name: String! @string(minLength: 1, maxLength: 1024)
+  indexBy: String! @string(minLength: 1, maxLength: 1024)
+  dataBlob: String! @string(minLength: 1, maxLength: 4096)
+  ceramicNode: ceramicNode
+}
+
+type CeramicNode {
+  id: String! @string(minLength: 1, maxLength: 1024)
+  provider: String! @string(minLength: 1, maxLength: 1024)
+  metaPointer: String! @string(minLength: 1, maxLength: 1024)
+  hash: String! @string(minLength: 1, maxLength: 1024)
+}
