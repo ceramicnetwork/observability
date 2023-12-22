@@ -33,6 +33,7 @@ type PeriodicMetricEventV1 implements MetricEvent
   ipfsVersion: String @string(minLength:1, maxLength: 32)
   totalPinnedStreams: Integer
   totalIndexedModels: Integer
-  totalPendingRequests: Integer
-  totalCompletedRequests: Integer
+  currentPendingRequests: Integer
+  recentCompletedRequests: Integer
+  recentErrors: String! @string(minLength: 1, maxLength: 4096)
 }
