@@ -1,3 +1,8 @@
+/**
+ * Interfaces and model schemas for simple metrics
+ */
+
+export const metricSchema = `
 
 interface MetricEvent
   @createModel(description: "Required metric event content interface") {
@@ -28,7 +33,7 @@ type PeriodicMetricEventV1 implements MetricEvent
   name: String! @string(minLength: 1, maxLength: 128)
   ceramicNode: CeramicNode
   lookbackWindowMS: Int
-  
+
   ceramicVersion: String @string(minLength:1, maxLength: 32)
   ipfsVersion: String @string(minLength:1, maxLength: 32)
   totalPinnedStreams: Int
@@ -37,3 +42,4 @@ type PeriodicMetricEventV1 implements MetricEvent
   recentCompletedRequests: Int
   recentErrors: String! @string(minLength: 1, maxLength: 4096)
 }
+`
