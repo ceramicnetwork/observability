@@ -1,7 +1,7 @@
 import type { CeramicApi } from '@ceramicnetwork/common'
 import { Composite } from '@composedb/devtools'
 
-import { metricSchema } from './simpleNodeMetrics'
+import { metricSchema } from './simpleNodeMetrics.js'
 
 declare global {
   const ceramic: CeramicApi
