@@ -33,6 +33,12 @@ importers:
         specifier: ^5.1.6
         version: 5.1.6
 
+  packages/model-metrics:
+    specifiers:
+      typescript: ^5.1.6
+    devDependencies:
+      typescript: 5.1.6
+
   packages/service-metrics:
     dependencies:
       '@opentelemetry/api':
