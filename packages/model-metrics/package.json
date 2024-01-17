@@ -15,7 +15,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@ceramicnetwork/common": "^3.2.0",
+    "@ceramicnetwork/common": "^3.0.5",
     "@composedb/devtools": "^0.6.1"
   }
 }
