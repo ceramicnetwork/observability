@@ -21,9 +21,13 @@ const authenticate = async () => {
   ceramic.did = did;
   return did
 };
-//const did = await authenticate()
-//compose.setDID(did)
 
+// Immediately invoked function expression to use async/await
+(async () => {
+  const did = await authenticate();
+  //compose.setDID(did);
 
-// Call the async function
-createMetricComposite(ceramic);
+  // Call the async function
+  createMetricComposite(ceramic);
+})();
+
