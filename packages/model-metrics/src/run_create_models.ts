@@ -1,12 +1,22 @@
+/*
+ * Script to create the metrics models - node operators do not need to run this
+ * 
+ */
+
 import { CeramicClient } from "@ceramicnetwork/http-client"
 import { createMetricComposite} from './createModels.js'
+import { Composite } from '@composedb/devtools'
+import {
+  readEncodedComposite,
+  writeEncodedComposite,
+  writeEncodedCompositeRuntime,
+} from "@composedb/devtools-node";
 import { Ed25519Provider } from 'key-did-provider-ed25519'
 import { DID } from 'dids'
 import { getResolver } from 'key-did-resolver'
 import { fromString } from 'uint8arrays'
 import {readFileSync} from 'fs'
 
-// Not used in production - the ceramic object would be passed 
 const CERAMIC_URL = process.env.CERAMIC_URL;
 const ceramic = new CeramicClient(CERAMIC_URL);
 
@@ -22,12 +32,26 @@ const authenticate = async () => {
   return did
 };
 
-// Immediately invoked function expression to use async/await
 (async () => {
   const did = await authenticate();
-  //compose.setDID(did);
 
-  // Call the async function
-  createMetricComposite(ceramic);
+  // Create the composites and models
+  const metricComposite: Composite = await createMetricComposite(ceramic);
+
+  await writeEncodedComposite(metricComposite, "./src/__generated__/definition.json");
+  await writeEncodedCompositeRuntime(
+    ceramic,
+    "./src/__generated__/definition.json",
+    "./src/__generated__/definition.js"
+  );
+
+  const deployComposite = await readEncodedComposite(
+    ceramic,
+    "./src/__generated__/definition.json"
+  );
+
+  await deployComposite.startIndexingOn(ceramic);
+
+  // 
 })();
 

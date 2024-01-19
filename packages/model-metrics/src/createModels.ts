@@ -12,14 +12,9 @@ declare global {
 }
 */
 
-export async function createMetricComposite(ceramic: CeramicApi) {
-  try {
-    const composite = await Composite.create({ ceramic, schema: metricSchema });
-    console.log(composite);
-    debugger;
-    return composite;
-  } catch (error) {
-    console.error('Error creating composite:', error);
-  }
+export async function createMetricComposite(ceramic: CeramicApi): Promise<Composite> {
+  const composite: Composite = await Composite.create({ ceramic, schema: metricSchema });
+  console.log(composite);
+  return composite;
 }
 
