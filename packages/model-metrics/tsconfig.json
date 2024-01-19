@@ -9,7 +9,10 @@
     "esModuleInterop": true,                   
     "skipLibCheck": true,                      
     "forceConsistentCasingInFileNames": true,  
-    "sourceMap": true                          
+    "sourceMap": true,
+    "paths": {
+      "@composedb/devtools/*": ["./node_modules/@composedb/devtools/*"]
+    }
   },
   "include": ["src"]
 }
