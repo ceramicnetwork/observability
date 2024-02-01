@@ -17,6 +17,7 @@ import semanticConventions from '@opentelemetry/semantic-conventions'
 const { SemanticResourceAttributes } = semanticConventions
 import resources from '@opentelemetry/resources'
 const { Resource } = resources
+import { setInterval, clearInterval } from 'timers'
 import { trace, type ObservableResult, type TimeInput } from '@opentelemetry/api'
 
 import { Utils } from './utils.js'
@@ -51,7 +52,8 @@ class NullSpan implements Endable {
 
 export enum SinceField {
   CREATED_AT = 0,
-  UPDATED_AT = 1
+  UPDATED_AT = 1,
+  TIMESTAMP = 2
 }
 
 export class TimeableMetric {
@@ -59,13 +61,22 @@ export class TimeableMetric {
   protected totTime: number
   protected maxTime: number
   protected since: SinceField
+  protected name: string | null = null;
   private publishIntervalId: NodeJS.Timer | null = null;
+  private publishInterval: number | null = null;
 
-  constructor(since: SinceField) {
+  constructor(since: SinceField, name?: string, interval?: number) {
     this.cnt = 0
     this.totTime = 0
     this.maxTime = 0
     this.since = since
+    // for backwards compatibility name may be specified at the time of publish stats
+    if (name) {
+        this.name = name
+    }
+    if (interval) {
+        this.publishInterval = interval
+    }
   }
 
   public recordAll(tasks: Timeable[]) {
@@ -80,7 +91,7 @@ export class TimeableMetric {
     let timeElapsed = 0
     if (this.since === SinceField.CREATED_AT) {
       timeElapsed = Date.now() - task.createdAt.getTime()
-    } elif (this.since === SinceField.TIMESTAMP) {
+    } else if (this.since === SinceField.TIMESTAMP) {
       timeElapsed = Date.now() - task.timestamp
     } else { // UpdatedAt
       timeElapsed = Date.now() - task.updatedAt.getTime()
@@ -102,20 +113,27 @@ export class TimeableMetric {
   *
   * @param {string} name - The name of the metric to publish statistics for.
   */
-  public publishStats(name: string): void {
+  public publishStats(name?: string): void {
+    if (! name) {
+        name = this.name
+    }
     ServiceMetrics.count(name + '_total', this.cnt)
     ServiceMetrics.record(name + '_mean', this.getMeanTime())
     ServiceMetrics.record(name + '_max', this.maxTime)
   }
 
-  startPublishingStats(name: string, interval: number): void {
+  startPublishingStats(): void {
+    if ((! this.name) || (! this.publishInterval)) {
+        ServiceMetrics.log_err("Please set name and interval on initialization of your TimeableMetric")
+        return
+    }
     if (this.publishIntervalId) {
       clearInterval(this.publishIntervalId); // Clear existing interval if it's already running
     }
 
     this.publishIntervalId = setInterval(() => {
-      this.publishStats(name);
-    }, interval);
+      this.publishStats(this.name);
+    }, this.publishInterval);
   }
 
   stopPublishingStats(): void {
