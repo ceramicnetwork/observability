@@ -34,8 +34,9 @@ interface Endable {
 }
 
 interface Timeable {
-  createdAt: Date
-  updatedAt: Date
+  createdAt?: Date;
+  updatedAt?: Date;
+  timestamp?: Date;
 }
 
 class NullSpan implements Endable {
@@ -58,6 +59,7 @@ export class TimeableMetric {
   protected totTime: number
   protected maxTime: number
   protected since: SinceField
+  private publishIntervalId: NodeJS.Timer | null = null;
 
   constructor(since: SinceField) {
     this.cnt = 0
@@ -66,20 +68,22 @@ export class TimeableMetric {
     this.since = since
   }
 
-  public recordAll(requests: Timeable[]) {
-    for (const req of requests) {
-      this.record(req)
+  public recordAll(tasks: Timeable[]) {
+    for (const task of tasks) {
+      this.record(task)
     }
   }
 
-  public record(request: Timeable) {
+  public record(task: Timeable) {
 
     this.cnt += 1
     let timeElapsed = 0
     if (this.since === SinceField.CREATED_AT) {
-      timeElapsed = Date.now() - request.createdAt.getTime()
+      timeElapsed = Date.now() - task.createdAt.getTime()
+    } elif (this.since === SinceField.TIMESTAMP) {
+      timeElapsed = Date.now() - task.timestamp
     } else { // UpdatedAt
-      timeElapsed = Date.now() - request.updatedAt.getTime()
+      timeElapsed = Date.now() - task.updatedAt.getTime()
     }
     this.totTime += timeElapsed
     if (timeElapsed > this.maxTime) {
@@ -91,10 +95,34 @@ export class TimeableMetric {
     return this.totTime / this.cnt
   }
 
+  /**
+  * Publishes the accumulated statistics.
+  * This method can be invoked manually or automatically at set intervals.
+  * It publishes the total count, mean time, and maximum time for the given metric.
+  *
+  * @param {string} name - The name of the metric to publish statistics for.
+  */
   public publishStats(name: string): void {
     ServiceMetrics.count(name + '_total', this.cnt)
     ServiceMetrics.record(name + '_mean', this.getMeanTime())
     ServiceMetrics.record(name + '_max', this.maxTime)
+  }
+
+  startPublishingStats(name: string, interval: number): void {
+    if (this.publishIntervalId) {
+      clearInterval(this.publishIntervalId); // Clear existing interval if it's already running
+    }
+
+    this.publishIntervalId = setInterval(() => {
+      this.publishStats(name);
+    }, interval);
+  }
+
+  stopPublishingStats(): void {
+    if (this.publishIntervalId) {
+      clearInterval(this.publishIntervalId);
+      this.publishIntervalId = null;
+    }
   }
 
 }
