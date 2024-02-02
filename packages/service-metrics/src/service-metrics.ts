@@ -17,7 +17,6 @@ import semanticConventions from '@opentelemetry/semantic-conventions'
 const { SemanticResourceAttributes } = semanticConventions
 import resources from '@opentelemetry/resources'
 const { Resource } = resources
-import { setInterval, clearInterval } from 'timers'
 import { trace, type ObservableResult, type TimeInput } from '@opentelemetry/api'
 
 import { Utils } from './utils.js'
@@ -62,7 +61,7 @@ export class TimeableMetric {
   protected maxTime: number
   protected since: SinceField
   protected name: string | null = null;
-  private publishIntervalId: NodeJS.Timer | null = null;
+  private publishIntervalId: NodeJS.Timeout | null = null;
   private publishInterval: number | null = null;
 
   constructor(since: SinceField, name?: string, interval?: number) {
@@ -92,7 +91,7 @@ export class TimeableMetric {
     if (this.since === SinceField.CREATED_AT) {
       timeElapsed = Date.now() - task.createdAt.getTime()
     } else if (this.since === SinceField.TIMESTAMP) {
-      timeElapsed = Date.now() - task.timestamp
+      timeElapsed = Date.now() - Number(task.timestamp)
     } else { // UpdatedAt
       timeElapsed = Date.now() - task.updatedAt.getTime()
     }
