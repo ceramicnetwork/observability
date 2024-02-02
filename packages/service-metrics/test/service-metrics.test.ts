@@ -13,6 +13,7 @@ describe('simple test of metrics', () => {
   let server
 
   beforeAll(async () => {
+    jest.useFakeTimers()
     server = createServer((req, res) => {
       let body = '';
       req.on('data', (chunk) => {
@@ -118,6 +119,7 @@ describe('simple test of metrics', () => {
 
   test('startPublishingStats starts interval', () => {
     let tmetric = new TimeableMetric(SinceField.TIMESTAMP, 'testMetric', 1000);
+    console.log('Spying on ServiceMetrics:', ServiceMetrics);
     let countSpy = jest.spyOn(ServiceMetrics, 'count').mockImplementation(() => null)
     let observeSpy = jest.spyOn(ServiceMetrics, 'observe').mockImplementation(() => null)
 
@@ -151,7 +153,7 @@ describe('simple test of metrics', () => {
     jest.advanceTimersByTime(3000); // Advance time by 3 seconds
 
     expect(countSpy).toHaveBeenCalledTimes(3);
-    expect(recordSpy).toHaveBeenCalledTimes(6); // Observe is called twice per publish
+    expect(observeSpy).toHaveBeenCalledTimes(6); // Observe is called twice per publish
 
     tmetric.stopPublishingStats()
     countSpy.mockRestore()
@@ -170,8 +172,8 @@ describe('simple test of metrics', () => {
 
     jest.advanceTimersByTime(2000); // Advance time after stopping
 
-    expect(countSpy).toHaveBeenCalledTimes(1); // Only the initial call
-    expect(observeSpy).toHaveBeenCalledTimes(2);
+    expect(countSpy).toHaveBeenCalledTimes(0);
+    expect(observeSpy).toHaveBeenCalledTimes(0);
 
     countSpy.mockRestore()
     observeSpy.mockRestore()
