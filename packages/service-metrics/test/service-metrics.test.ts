@@ -1,4 +1,4 @@
-import { ServiceMetrics } from '../src/service-metrics.js'
+import { ServiceMetrics, Timeable, SinceField, TimeableMetric } from '../src/service-metrics.js'
 import { expect, jest} from '@jest/globals'
 import { createServer } from 'http'
 
@@ -116,7 +116,69 @@ describe('simple test of metrics', () => {
     spy.mockRestore()
   })
 
-})
+  test('startPublishingStats starts interval', () => {
+    let tmetric = new TimeableMetric(SinceField.TIMESTAMP, 'testMetric', 1000);
+    let countSpy = jest.spyOn(ServiceMetrics, 'count').mockImplementation(() => null)
+    let observeSpy = jest.spyOn(ServiceMetrics, 'observe').mockImplementation(() => null)
+
+    tmetric.startPublishingStats();
+
+    jest.advanceTimersByTime(3000); // Advance time by 3 seconds
+
+    expect(countSpy).toHaveBeenCalledTimes(3);
+    expect(observeSpy).toHaveBeenCalledTimes(6); // Observe is called twice per publish
+
+    tmetric.stopPublishingStats()
+
+    countSpy.mockRestore()
+    observeSpy.mockRestore()
+  });
+
+
+  test('many records are one publish', () => {
+    let tmetric = new TimeableMetric(SinceField.TIMESTAMP, 'testMetric', 1000);
+    let countSpy = jest.spyOn(ServiceMetrics, 'count').mockImplementation(() => null)
+    let observeSpy = jest.spyOn(ServiceMetrics, 'observe').mockImplementation(() => null)
+
+    tmetric.startPublishingStats();
+
+    let task: Timeable =  { timestamp: 1706902564000 }
+
+    for (let n = 0; n < 10; n++) {
+       tmetric.record(task)
+    }
+
+    jest.advanceTimersByTime(3000); // Advance time by 3 seconds
+
+    expect(countSpy).toHaveBeenCalledTimes(3);
+    expect(recordSpy).toHaveBeenCalledTimes(6); // Observe is called twice per publish
+
+    tmetric.stopPublishingStats()
+    countSpy.mockRestore()
+    observeSpy.mockRestore()
+  });
+
+  test('stopPublishingStats stops interval', () => {
+    let tmetric = new TimeableMetric(SinceField.TIMESTAMP, 'testMetric', 1000);
+    let countSpy = jest.spyOn(ServiceMetrics, 'count').mockImplementation(() => null)
+    let observeSpy = jest.spyOn(ServiceMetrics, 'observe').mockImplementation(() => null)
+
+    tmetric.startPublishingStats();
+    tmetric.stopPublishingStats();
+
+    expect(tmetric['publishIntervalId']).toBeNull();
+
+    jest.advanceTimersByTime(2000); // Advance time after stopping
+
+    expect(countSpy).toHaveBeenCalledTimes(1); // Only the initial call
+    expect(observeSpy).toHaveBeenCalledTimes(2);
+
+    countSpy.mockRestore()
+    observeSpy.mockRestore()
+  });
+
+});
+
 
 
 describe('test startup params', () => {

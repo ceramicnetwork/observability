@@ -117,8 +117,8 @@ export class TimeableMetric {
         name = this.name
     }
     ServiceMetrics.count(name + '_total', this.cnt)
-    ServiceMetrics.record(name + '_mean', this.getMeanTime())
-    ServiceMetrics.record(name + '_max', this.maxTime)
+    ServiceMetrics.observe(name + '_mean', this.getMeanTime())
+    ServiceMetrics.observe(name + '_max', this.maxTime)
   }
 
   startPublishingStats(): void {
