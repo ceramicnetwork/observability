@@ -13,7 +13,35 @@ import type { CeramicApi } from '@ceramicnetwork/common'
 
 const MET_MODEL=StreamID.fromString('kjzl6hvfrbw6cal05ygekxn047ab4arqfolyjlixsaj6us8yt4th95kse424dm3')
 
-export async function publishMetric(ceramic: CeramicApi, data: Record<string, unknown>) {
+export interface CeramicNode {
+    id: string;
+    name: string;
+    nodeAuthDID?: string;
+    IPAddress?: string;
+    PeerID?: string;
+    ceramicVersion?: string;
+    ipfsVersion?: string;
+}
+
+export interface PeriodicMetricEventV1 {
+    ts: Date;
+
+    name: string;
+    ceramicNode?: CeramicNode;
+
+    lookbackWindowMS?: number;
+
+    totalPinnedStreams?: number;
+    totalIndexedModels?: number;
+    currentPendingRequests?: number;
+
+    recentCompletedRequests?: number;
+    recentErrors?: number;
+
+    sampleRecentErrors?: string[];
+}
+
+export async function publishMetric(ceramic: CeramicApi, data: PeriodicMetricEventV1) {
 
      const result = await ModelInstanceDocument.create(ceramic, data, { model: MET_MODEL}) 
 

@@ -6,11 +6,6 @@ import { metricSchema } from './simpleNodeMetrics.js'
 
 
 import type { CeramicApi } from '@ceramicnetwork/common'
-/*
-declare global {
-  const ceramic: CeramicApi
-}
-*/
 
 export async function createMetricComposite(ceramic: CeramicApi): Promise<Composite> {
   const composite: Composite = await Composite.create({ ceramic, schema: metricSchema });

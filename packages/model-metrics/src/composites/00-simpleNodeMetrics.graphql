@@ -11,6 +11,8 @@ type CeramicNode {
   nodeAuthDID: String! @string(minLength: 1, maxLength: 1024)
   IPAddress: String! @string(minLength: 1, maxLength: 64)
   PeerID: String! @string(minLength: 1, maxLength: 256)
+  ceramicVersion: String @string(minLength:1, maxLength: 32)
+  ipfsVersion: String @string(minLength:1, maxLength: 32)
 }
 
 type GenericMetricEvent implements MetricEvent
@@ -29,11 +31,10 @@ type PeriodicMetricEventV1 implements MetricEvent
   ceramicNode: CeramicNode
   lookbackWindowMS: Int
   
-  ceramicVersion: String @string(minLength:1, maxLength: 32)
-  ipfsVersion: String @string(minLength:1, maxLength: 32)
   totalPinnedStreams: Int
   totalIndexedModels: Int
   currentPendingRequests: Int
   recentCompletedRequests: Int
-  recentErrors: String! @string(minLength: 1, maxLength: 4096)
+  recentErrors: Int
+  sampleRecentErrors: String! @string(minLength: 1, maxLength: 4096)
 }
