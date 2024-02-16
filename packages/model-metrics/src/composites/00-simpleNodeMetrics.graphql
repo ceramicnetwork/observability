@@ -26,15 +26,22 @@ type GenericMetricEvent implements MetricEvent
 
 type PeriodicMetricEventV1 implements MetricEvent
   @createModel(description: "Initial take on useful metric fields") {
+
   ts: DateTime!
+
   name: String! @string(minLength: 1, maxLength: 128)
   ceramicNode: CeramicNode
+
   lookbackWindowMS: Int
   
   totalPinnedStreams: Int
   totalIndexedModels: Int
   currentPendingRequests: Int
+
+  meanAnchorRequestAgeMS: Int
+  maxAnchorRequestAgeMS: Int
   recentCompletedRequests: Int
   recentErrors: Int
+
   sampleRecentErrors: String! @string(minLength: 1, maxLength: 4096)
 }

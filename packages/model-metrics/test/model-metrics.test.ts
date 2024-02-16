@@ -1,4 +1,4 @@
-import { publishMetric } from '../src/model-metrics.js'
+import { publishMetric } from '../src/publishMetrics.js'
 import { expect, jest} from '@jest/globals'
 
 describe('publishMetric with ceramic mock', () => {

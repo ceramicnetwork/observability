@@ -35,6 +35,8 @@ export interface PeriodicMetricEventV1 {
     totalIndexedModels?: number;
     currentPendingRequests?: number;
 
+    meanAnchorRequestAgeMS: number;
+    maxAnchorRequestAgeMS: number;
     recentCompletedRequests?: number;
     recentErrors?: number;
 

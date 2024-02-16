@@ -27,6 +27,9 @@ class _ModelMetrics {
   protected ceramicNode: CeramicNode | undefined
   protected metrics: Record<string, number>;
   protected sampleRecentErrors: string[]
+  protected total_anchor_count: number
+  protected total_anchor_age: number
+  protected max_anchor_age: number
   protected logger: any
   private publishIntervalId: NodeJS.Timeout | null = null;
   private publishIntervalMS: number | null = null;
@@ -37,6 +40,9 @@ class _ModelMetrics {
       this.publishIntervalMS = interval
       this.metrics = {};
       this.sampleRecentErrors = [];
+      this.total_anchor_count = 0;
+      this.total_anchor_age = 0;
+      this.max_anchor_age = 0;
       this.logger = null
   }
 
@@ -109,12 +115,30 @@ class _ModelMetrics {
       this.metrics[name] = value
   }
 
+  /* specific function to record errors, which will keep a count and sample of errors */
   recordError(error: string) {
       this.count(Counter.RECENT_ERRORS, 1) 
       if (this.sampleRecentErrors.length >= ERROR_SAMPLE_SIZE) {
           return
       }
       this.sampleRecentErrors.push(error.substring(0, ERROR_MAX_LENGTH));
+  }
+
+  /* Specific function to record an Anchor Request age, which will update the mean and max */
+  recordAnchorRequestAgeMS(age: number) {
+      this.total_anchor_age += age
+      this.total_anchor_count += 1
+      if (age > this.max_anchor_age) {
+         this.max_anchor_age = age
+      }
+  }
+
+  getMeanAnchorRequestAgeMS() {
+      if (this.total_anchor_count > 0) {
+         return this.total_anchor_age / this.total_anchor_count
+      } else {
+         return 0
+      }
   }
 
   getMetrics(): PeriodicMetricEventV1 {
@@ -125,6 +149,8 @@ class _ModelMetrics {
           totalPinnedStreams: this.metrics[Observable.TOTAL_PINNED_STREAMS] || 0,
           totalIndexedModels: this.metrics[Observable.TOTAL_INDEXED_MODELS] || 0,
           currentPendingRequests: this.metrics[Observable.CURRENT_PENDING_REQUESTS] || 0,
+          meanAnchorRequestAgeMS: this.getMeanAnchorRequestAgeMS(),
+          maxAnchorRequestAgeMS: this.max_anchor_age,
           recentCompletedRequests: this.metrics[Counter.RECENT_COMPLETED_REQUESTS] || 0,
           recentErrors: this.metrics[Counter.RECENT_ERRORS] || 0,
           sampleRecentErrors: this.sampleRecentErrors
@@ -139,6 +165,9 @@ class _ModelMetrics {
   resetMetrics(): void {
       this.metrics = {};
       this.sampleRecentErrors = [];
+      this.total_anchor_age = 0;
+      this.total_anchor_count = 0;
+      this.max_anchor_age = 0;
   }
   
   async publish() {
