@@ -12,34 +12,34 @@ interface MetricEvent
 
 type CeramicNode {
   id: String! @string(minLength: 1, maxLength: 1024)
-  name: String! @string(minLength: 1, maxLength: 128)
-  nodeAuthDID: String! @string(minLength: 1, maxLength: 1024)
-  IPAddress: String! @string(minLength: 1, maxLength: 64)
-  PeerID: String! @string(minLength: 1, maxLength: 256)
+  name: String @string(minLength: 1, maxLength: 128)
+  nodeAuthDID: String @string(minLength: 1, maxLength: 1024)
+  IPAddress: String @string(minLength: 1, maxLength: 64)
+  PeerID: String @string(minLength: 1, maxLength: 256)
+  ceramicVersion: String @string(minLength: 1, maxLength: 64)
+  ipfsVersion: String @string(minLength: 1, maxLength: 64)
 }
 
 type GenericMetricEvent implements MetricEvent
   @createModel(description: "Metric Event with data as json blob") {
   ts: DateTime!
-  name: String! @string(minLength: 1, maxLength: 1024)
-  indexBy: String! @string(minLength: 1, maxLength: 1024)
+  ceramicNode: CeramicNode!
   dataBlob: String! @string(minLength: 1, maxLength: 4096)
-  ceramicNode: CeramicNode
 }
 
 type PeriodicMetricEventV1 implements MetricEvent
   @createModel(description: "Initial take on useful metric fields") {
   ts: DateTime!
-  name: String! @string(minLength: 1, maxLength: 128)
-  ceramicNode: CeramicNode
+  ceramicNode: CeramicNode!
   lookbackWindowMS: Int
 
-  ceramicVersion: String @string(minLength:1, maxLength: 32)
-  ipfsVersion: String @string(minLength:1, maxLength: 32)
   totalPinnedStreams: Int
   totalIndexedModels: Int
   currentPendingRequests: Int
+  meanAnchorRequestAgeMS: Int
+  maxAnchorRequestAgeMS: Int
   recentCompletedRequests: Int
-  recentErrors: String! @string(minLength: 1, maxLength: 4096)
+  recentErrors: Int
+  sampleRecentErrors: String @string(minLength: 1, maxLength: 4096)
 }
 `

@@ -11,11 +11,11 @@ import type { CeramicApi } from '@ceramicnetwork/common'
 
 // https://github.com/ceramicstudio/js-composedb/blob/961278c7cae533dcdbd7376f6c823f4cce6bdba2/packages/runtime/src/loader.ts#L118C3-L122C7
 
-const MET_MODEL=StreamID.fromString('kjzl6hvfrbw6cal05ygekxn047ab4arqfolyjlixsaj6us8yt4th95kse424dm3')
+const MET_MODEL=StreamID.fromString('kjzl6hvfrbw6c7xkog3pq14by2ikfke9o6memx7yg64p0cuij7qmg0relzfhgeq')
 
 export interface CeramicNode {
     id: string;
-    name: string;
+    name?: string;
     nodeAuthDID?: string;
     IPAddress?: string;
     PeerID?: string;
@@ -24,10 +24,9 @@ export interface CeramicNode {
 }
 
 export interface PeriodicMetricEventV1 {
-    ts: Date;
+    ts: string;
 
-    name: string;
-    ceramicNode?: CeramicNode;
+    ceramicNode: CeramicNode;
 
     lookbackWindowMS?: number;
 
@@ -35,8 +34,8 @@ export interface PeriodicMetricEventV1 {
     totalIndexedModels?: number;
     currentPendingRequests?: number;
 
-    meanAnchorRequestAgeMS: number;
-    maxAnchorRequestAgeMS: number;
+    meanAnchorRequestAgeMS?: number;
+    maxAnchorRequestAgeMS?: number;
     recentCompletedRequests?: number;
     recentErrors?: number;
 

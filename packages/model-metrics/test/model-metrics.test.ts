@@ -1,36 +1,56 @@
-import { publishMetric } from '../src/publishMetrics.js'
 import { expect, jest} from '@jest/globals'
 
-describe('publishMetric with ceramic mock', () => {
+jest.mock('../src/publishMetrics.js', () => ({
+  publishMetric: jest.fn(),
+}));
+console.log(jest.isMockFunction(publishMetric));
+import { ModelMetrics } from '../src/model-metrics.js'
+import { publishMetric } from '../src/publishMetrics.js'
+import * as publishMetricsModule from '../src/publishMetrics.js';
+console.log(jest.isMockFunction(publishMetric));
+console.log(jest.isMockFunction(publishMetricsModule.publishMetric));
 
-  const mockCeramic = {
-    create: jest.fn(async (...args) => { // Use rest parameter syntax to capture all arguments
-      console.log('ModelInstanceDocument.create called with', args);
-      return { success: true };
-    }),
-  };
+const ceramicStub: any = {};
 
-  beforeEach(() => {
-    // Reset mocks, setup initial state, etc.
-    mockCeramic.create.mockClear();
-  });
+describe('simple test of metrics', () => {
 
-  afterEach(() => {
-    // Cleanup actions after each test
-  });
+  beforeAll(async () => {
+    jest.useFakeTimers()
+    
+    ModelMetrics.start(ceramicStub, 1000)
+  })
 
-  it('should log calls made to ceramic', async () => {
-    // Assuming publishMetric uses mockCeramic.create internally
-    const testData = {
-      ts: new Date(),
-      name: 'Hello Metrics World',
-      recentErrors: 2,
-    };
+  afterAll(async () => {
+    console.log("Done.")
+  })
 
-    // Directly pass the mockCeramic to your function
-    await publishMetric(mockCeramic, testData);
 
-    // Verify mockCeramic.create was called
-    expect(mockCeramic.create).toHaveBeenCalled();
-  });
+  test('create metric', async () => {
+    ModelMetrics.count('recentErrors', 1)
+    jest.advanceTimersByTime(3000); // Advance time by 3 seconds
+    expect(publishMetricsModule.publishMetric).toHaveBeenCalled();
+  })
+
+
 });
+
+
+
+describe('test startup params', () => {
+
+  test('all params', async() => {
+
+    ModelMetrics.start(
+           ceramicStub,
+           1000,
+           'v1.0',
+           'v1.0.1',
+           '123',
+           'fred',
+           'did:key:456',
+           '10.0.0.1',
+           'pMqqqqqqqqq',
+           null
+    )
+  })
+})

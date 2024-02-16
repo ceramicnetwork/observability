@@ -36,8 +36,7 @@ class _ModelMetrics {
 
   private static instance: _ModelMetrics
 
-  private constructor(interval: number = DEFAULT_PUBLISH_INTERVAL_MS) {
-      this.publishIntervalMS = interval
+  private constructor() {
       this.metrics = {};
       this.sampleRecentErrors = [];
       this.total_anchor_count = 0;
@@ -57,6 +56,7 @@ class _ModelMetrics {
   /* Set up the publisher at run time, with an authenticated ceramic node */
   start(
     ceramic: CeramicApi,
+    interval: number = DEFAULT_PUBLISH_INTERVAL_MS,
     ceramic_version: string = '',
     ipfs_version: string = '',
     node_id: string = '',
@@ -68,6 +68,7 @@ class _ModelMetrics {
   ) {
 
     this.ceramicApi = ceramic
+    this.publishIntervalMS = interval
 
     this.ceramicNode = {
        id: node_id,
@@ -142,9 +143,9 @@ class _ModelMetrics {
   }
 
   getMetrics(): PeriodicMetricEventV1 {
+      const datestr = new Date().toISOString()
       const record: PeriodicMetricEventV1 = {
-          ts: new Date(),
-          name: 'ExampleMetricEvent',
+          ts: datestr, //new Date(),
           ceramicNode: this.ceramicNode,
           totalPinnedStreams: this.metrics[Observable.TOTAL_PINNED_STREAMS] || 0,
           totalIndexedModels: this.metrics[Observable.TOTAL_INDEXED_MODELS] || 0,
@@ -186,20 +187,27 @@ class _ModelMetrics {
 
     this.publishIntervalId = setInterval(async () => {
         try {
-            await this.publish(); // Call the async function and wait for it to resolve
+            await this.publish();
             this.resetMetrics();
         } catch (error) {
             this.log_err("Error in publishing metrics: " + error);
-            // Optionally handle the error, e.g., by logging it or taking corrective action
         }
     }, this.publishIntervalMS);
 
   }
 
-  stopPublishing(): void {
+  async stopPublishing(flush = false): Promise<void> {
     if (this.publishIntervalId) {
       clearInterval(this.publishIntervalId);
       this.publishIntervalId = null;
+      if (flush) {
+        try {
+            await this.publish();
+            this.resetMetrics();
+        } catch (error) {
+            this.log_err("Error in publishing metrics: " + error);
+        }
+      }
     }
   }
 

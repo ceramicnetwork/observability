@@ -30,15 +30,18 @@ const authenticate = async () => {
 
 (async () => {
   const did = await authenticate();
-
+  const datestr = new Date().toISOString();
   const data = {
-    ts: new Date(),
-    name: 'Hello Metrics World',
+    ts: datestr, //new Date(),
+    ceramicNode: {
+       id: '1234',
+       name: 'Hello Metrics World',
+    },
     recentErrors: 2
   }
 
   // Publish a model document
   const result = await publishMetric(ceramic, data);
-
+  console.log(result.id);
 })();
 
