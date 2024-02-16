@@ -1,24 +1,51 @@
 {
-  "name": "model-metrics",
-  "type": "module",
+  "name": "@ceramicnetwork/model-metrics",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+  "description": "Typescript library for publishing metrics as ceramic model instance documents",
+  "author": "Golda Velez <golda@3box.io>",
+  "license": "(Apache-2.0 OR MIT)",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build:clean": "rm -rf dist",
+    "build:js": "swc src -d ./dist --config-file ../../.swcrc",
+    "build:types": "tsc --emitDeclarationOnly --skipLibCheck",
+    "build": "pnpm run build:clean && pnpm run build:types && pnpm run build:js",
+    "lint": "eslint src test --fix",
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --verbose",
+    "test-debug": "node --inspect-brk --experimental-vm-modules ../../node_modules/jest/bin/jest.js --runInBand",
+    "test:ci": "pnpm run test --ci --coverage",
+    "prepare": "pnpm run build",
+    "prepublishOnly": "package-check",
+    "size": "./node_modules/.bin/size-limit",
+    "analyze": "./node_modules/.bin/size-limit --why"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ceramicnetwork/observability.git"
+  },
+  "keywords": [
+    "Metrics",
+    "Ceramic Network"
+  ],
+  "bugs": {
+    "url": "https://github.com/ceramicnetwork/observability/issues"
+  },
+  "homepage": "https://github.com/ceramicnetwork/observability#readme",
   "devDependencies": {
     "@ceramicnetwork/common": "^3.3.0",
     "@ceramicnetwork/http-client": "^3.3.0",
     "@composedb/client": "^0.6.0",
     "@composedb/devtools": "^0.6.1",
     "@composedb/devtools-node": "^0.6.1",
-    "@types/node": "^20.11.7",
-    "typescript": "^5.3.3"
+    "@types/node": "^20.11.16"
   },
   "dependencies": {
     "@ceramicnetwork/stream-model-instance": "^2.3.0",
