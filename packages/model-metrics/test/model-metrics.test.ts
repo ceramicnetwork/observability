@@ -1,22 +1,30 @@
 import { expect, jest} from '@jest/globals'
 
-jest.mock('../src/publishMetrics.js', () => ({
-  publishMetric: jest.fn(),
-}));
-console.log(jest.isMockFunction(publishMetric));
-import { ModelMetrics } from '../src/model-metrics.js'
-import { publishMetric } from '../src/publishMetrics.js'
-import * as publishMetricsModule from '../src/publishMetrics.js';
-console.log(jest.isMockFunction(publishMetric));
-console.log(jest.isMockFunction(publishMetricsModule.publishMetric));
+//jest.unstable_mockModule('../src/publishMetrics.js', () => ({
+//    publishMetric: jest.fn(),
+//}));
 
 const ceramicStub: any = {};
+let ModelMetrics;
+let pubMock;
 
 describe('simple test of metrics', () => {
 
   beforeAll(async () => {
     jest.useFakeTimers()
+
+    jest.unstable_mockModule('../src/publishMetrics', () => ({
+      publishMetric: jest.fn(),
+    }));
+
+    // Import the module after mocking it to get the mocked export
+    pubMock = await import('../src/publishMetrics');
     
+    const modelMetricsModule = await import('../src/model-metrics');
+    ModelMetrics = modelMetricsModule.ModelMetrics;    
+
+    console.log(jest.isMockFunction(pubMock.publishMetric));
+
     ModelMetrics.start(ceramicStub, 1000)
   })
 
@@ -28,7 +36,7 @@ describe('simple test of metrics', () => {
   test('create metric', async () => {
     ModelMetrics.count('recentErrors', 1)
     jest.advanceTimersByTime(3000); // Advance time by 3 seconds
-    expect(publishMetricsModule.publishMetric).toHaveBeenCalled();
+    expect(pubMock.publishMetric).toHaveBeenCalled();
   })
 
 
@@ -37,6 +45,13 @@ describe('simple test of metrics', () => {
 
 
 describe('test startup params', () => {
+
+  beforeAll(async () => {
+    jest.useFakeTimers()
+    const modelMetricsModule = await import('../src/model-metrics.js');
+    ModelMetrics = modelMetricsModule.ModelMetrics;
+    ModelMetrics.start(ceramicStub, 1000)
+  })
 
   test('all params', async() => {
 

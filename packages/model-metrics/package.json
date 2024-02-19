@@ -45,7 +45,8 @@
     "@composedb/client": "^0.6.0",
     "@composedb/devtools": "^0.6.1",
     "@composedb/devtools-node": "^0.6.1",
-    "@types/node": "^20.11.16"
+    "@types/node": "^20.11.16",
+    "jest": "29.7.0"
   },
   "dependencies": {
     "@ceramicnetwork/stream-model-instance": "^2.3.0",
