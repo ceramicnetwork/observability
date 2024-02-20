@@ -62,7 +62,7 @@ export class TimeableMetric {
   protected since: SinceField
   protected name: string | null = null;
   private publishIntervalId: NodeJS.Timeout | null = null;
-  private publishInterval: number | null = null;
+  private publishIntervalMS: number | null = null;
 
   constructor(since: SinceField, name?: string, interval?: number) {
     this.cnt = 0
@@ -74,7 +74,7 @@ export class TimeableMetric {
         this.name = name
     }
     if (interval) {
-        this.publishInterval = interval
+        this.publishIntervalMS = interval
     }
   }
 
@@ -122,7 +122,7 @@ export class TimeableMetric {
   }
 
   startPublishingStats(): void {
-    if ((! this.name) || (! this.publishInterval)) {
+    if ((! this.name) || (! this.publishIntervalMS)) {
         ServiceMetrics.log_err("Please set name and interval on initialization of your TimeableMetric")
         return
     }
@@ -132,7 +132,7 @@ export class TimeableMetric {
 
     this.publishIntervalId = setInterval(() => {
       this.publishStats(this.name);
-    }, this.publishInterval);
+    }, this.publishIntervalMS);
   }
 
   stopPublishingStats(): void {
