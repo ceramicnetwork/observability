@@ -23,7 +23,11 @@ describe('metrics publish at intervals', () => {
     const modelMetricsModule = await import('../src/model-metrics');
     ModelMetrics = modelMetricsModule.ModelMetrics;    
 
-    ModelMetrics.start(ceramicStub, 1000)
+    ModelMetrics.start({
+      ceramic: ceramicStub, 
+      nodeId: '123',
+      intervalMS: 1000
+    })
   })
 
   afterAll(async () => {
@@ -117,22 +121,26 @@ describe('test startup params', () => {
     jest.useFakeTimers()
     const modelMetricsModule = await import('../src/model-metrics.js');
     ModelMetrics = modelMetricsModule.ModelMetrics;
-    ModelMetrics.start(ceramicStub, 1000)
+    ModelMetrics.start({
+       ceramic: ceramicStub,
+       intervalMS: 1000,
+       nodeId: '123'
+    })
   })
 
   test('all params', async() => {
 
-    ModelMetrics.start(
-           ceramicStub,
-           1000,
-           'v1.0',
-           'v1.0.1',
-           '123',
-           'fred',
-           'did:key:456',
-           '10.0.0.1',
-           'pMqqqqqqqqq',
-           null
-    )
+    ModelMetrics.start({
+           ceramic: ceramicStub,
+           intervalMS: 1000,
+           ceramicVersion: 'v1.0',
+           ipfsVersion: 'v1.0.1',
+           nodeId: '123',
+           nodeName: 'fred',
+           nodeAuthDID: 'did:key:456',
+           nodeIPAddr: '10.0.0.1',
+           nodePeerId: 'pMqqqqqqqqq',
+           logger: null
+    })
   })
 })
