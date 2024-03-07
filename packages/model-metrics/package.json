@@ -1,6 +1,6 @@
 {
   "name": "@ceramicnetwork/model-metrics",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Typescript library for publishing metrics as ceramic model instance documents",
   "author": "Golda Velez <golda@3box.io>",
   "license": "(Apache-2.0 OR MIT)",

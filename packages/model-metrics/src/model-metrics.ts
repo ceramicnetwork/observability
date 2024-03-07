@@ -21,15 +21,28 @@ export enum Observable {
 const ERROR_MAX_LENGTH = 512
 const ERROR_SAMPLE_SIZE = 8
 
+interface StartOptions {
+  ceramic: CeramicApi;
+  nodeId: string;
+  intervalMS?: number;
+  ceramicVersion?: string;
+  ipfsVersion?: string;
+  nodeName?: string;
+  nodeAuthDID?: string;
+  nodeIPAddr?: string;
+  nodePeerId?: string;
+  logger?: any;
+}
+
 
 class _ModelMetrics {
   protected ceramicApi: CeramicApi | undefined
   protected ceramicNode: CeramicNode | undefined
   protected metrics: Record<string, number>;
   protected sampleRecentErrors: string[]
-  protected total_anchor_count: number
-  protected total_anchor_age: number
-  protected max_anchor_age: number
+  protected totalAnchorCount: number
+  protected totalAnchorAge: number
+  protected maxAnchorAge: number
   protected logger: any
   private publishIntervalId: NodeJS.Timeout | null = null;
   private publishIntervalMS: number | null = null;
@@ -39,9 +52,9 @@ class _ModelMetrics {
   private constructor() {
       this.metrics = {};
       this.sampleRecentErrors = [];
-      this.total_anchor_count = 0;
-      this.total_anchor_age = 0;
-      this.max_anchor_age = 0;
+      this.totalAnchorCount = 0;
+      this.totalAnchorAge = 0;
+      this.maxAnchorAge = 0;
       this.logger = null
   }
 
@@ -54,30 +67,32 @@ class _ModelMetrics {
 
 
   /* Set up the publisher at run time, with an authenticated ceramic node */
-  start(
-    ceramic: CeramicApi,
-    interval: number = DEFAULT_PUBLISH_INTERVAL_MS,
-    ceramic_version: string = '',
-    ipfs_version: string = '',
-    node_id: string = '',
-    node_name: string = '',
-    node_auth_did: string = '',
-    node_ip_address: string = '',
-    node_peer_id: string = '',
-    logger: any = null
-  ) {
+  start( options: StartOptions ) {
+
+    const {
+      ceramic,
+      intervalMS = DEFAULT_PUBLISH_INTERVAL_MS,
+      ceramicVersion = '',
+      ipfsVersion = '',
+      nodeId = '',
+      nodeName = '',
+      nodeAuthDID = '',
+      nodeIPAddr = '',
+      nodePeerId = '',
+      logger = null
+    } = options;
 
     this.ceramicApi = ceramic
-    this.publishIntervalMS = interval
+    this.publishIntervalMS = intervalMS
 
     this.ceramicNode = {
-       id: node_id,
-       name: node_name,
-       nodeAuthDID: node_auth_did,
-       IPAddress: node_ip_address,
-       PeerID: node_peer_id,
-       ceramicVersion: ceramic_version,
-       ipfsVersion: ipfs_version
+       id: nodeId || nodePeerId,
+       name: nodeName,
+       nodeAuthDID: nodeAuthDID,
+       IPAddress: nodeIPAddr,
+       PeerID: nodePeerId,
+       ceramicVersion: ceramicVersion,
+       ipfsVersion: ipfsVersion
     }
 
     this.startPublishing()
@@ -127,16 +142,16 @@ class _ModelMetrics {
 
   /* Specific function to record an Anchor Request age, which will update the mean and max */
   recordAnchorRequestAgeMS(age: number) {
-      this.total_anchor_age += age
-      this.total_anchor_count += 1
-      if (age > this.max_anchor_age) {
-         this.max_anchor_age = age
+      this.totalAnchorAge += age
+      this.totalAnchorCount += 1
+      if (age > this.maxAnchorAge) {
+         this.maxAnchorAge = age
       }
   }
 
   getMeanAnchorRequestAgeMS() {
-      if (this.total_anchor_count > 0) {
-         return this.total_anchor_age / this.total_anchor_count
+      if (this.totalAnchorCount > 0) {
+         return this.totalAnchorAge / this.totalAnchorCount
       } else {
          return 0
       }
@@ -151,7 +166,7 @@ class _ModelMetrics {
           totalIndexedModels: this.metrics[Observable.TOTAL_INDEXED_MODELS] || 0,
           currentPendingRequests: this.metrics[Observable.CURRENT_PENDING_REQUESTS] || 0,
           meanAnchorRequestAgeMS: this.getMeanAnchorRequestAgeMS(),
-          maxAnchorRequestAgeMS: this.max_anchor_age,
+          maxAnchorRequestAgeMS: this.maxAnchorAge,
           recentCompletedRequests: this.metrics[Counter.RECENT_COMPLETED_REQUESTS] || 0,
           recentErrors: this.metrics[Counter.RECENT_ERRORS] || 0,
           sampleRecentErrors: this.sampleRecentErrors
@@ -166,9 +181,9 @@ class _ModelMetrics {
   resetMetrics(): void {
       this.metrics = {};
       this.sampleRecentErrors = [];
-      this.total_anchor_age = 0;
-      this.total_anchor_count = 0;
-      this.max_anchor_age = 0;
+      this.totalAnchorAge = 0;
+      this.totalAnchorCount = 0;
+      this.maxAnchorAge = 0;
   }
   
   async publish() {
@@ -178,7 +193,7 @@ class _ModelMetrics {
 
   startPublishing(): void {
     if (! this.publishIntervalMS) {
-        this.log_err("Please set a non-zero interval for publishing model metrics")
+        this.logErr("Please set a non-zero interval for publishing model metrics")
         return
     }
     if (this.publishIntervalId) {
@@ -190,7 +205,7 @@ class _ModelMetrics {
             await this.publish();
             this.resetMetrics();
         } catch (error) {
-            this.log_err("Error in publishing metrics: " + error);
+            this.logErr("Error in publishing metrics: " + error);
         }
     }, this.publishIntervalMS);
 
@@ -205,13 +220,13 @@ class _ModelMetrics {
             await this.publish();
             this.resetMetrics();
         } catch (error) {
-            this.log_err("Error in publishing metrics: " + error);
+            this.logErr("Error in publishing metrics: " + error);
         }
       }
     }
   }
 
-  log_info(message: string): void {
+  logInfo(message: string): void {
     if (!this.logger) {
       return
     }
@@ -220,7 +235,7 @@ class _ModelMetrics {
     } catch { }
   }
 
-  log_warn(message: string): void {
+  logWarn(message: string): void {
     if (!this.logger) {
       return
     }
@@ -229,7 +244,7 @@ class _ModelMetrics {
     } catch { }
   }
 
-  log_err(message: string): void {
+  logErr(message: string): void {
     if (!this.logger) {
       return
     }
