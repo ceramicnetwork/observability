@@ -1,17 +1,11 @@
-import { Composite } from '@composedb/devtools'
+import type { CeramicApi } from '@ceramicnetwork/common'
+import { Networks } from '@ceramicnetwork/common'
 import { StreamID } from '@ceramicnetwork/streamid'
 import { ModelInstanceDocument } from '@ceramicnetwork/stream-model-instance'
+import { Composite } from '@composedb/devtools'
+
 import { metricSchema } from './simpleNodeMetrics.js'
 
-// period exporter generic add not here
-
-import type { CeramicApi } from '@ceramicnetwork/common'
-// look for model instance document create stream 
-// avoid using composeclient to avoid circular
-
-// https://github.com/ceramicstudio/js-composedb/blob/961278c7cae533dcdbd7376f6c823f4cce6bdba2/packages/runtime/src/loader.ts#L118C3-L122C7
-
-const MET_MODEL=StreamID.fromString('kjzl6hvfrbw6c7xkog3pq14by2ikfke9o6memx7yg64p0cuij7qmg0relzfhgeq')
 
 export interface CeramicNode {
     id: string;
@@ -42,10 +36,30 @@ export interface PeriodicMetricEventV1 {
     sampleRecentErrors?: string[];
 }
 
-export async function publishMetric(ceramic: CeramicApi, data: PeriodicMetricEventV1) {
+export class MetricPublisher {
+    private ceramic: CeramicApi;
+    private modelId: StreamID;
 
-     const result = await ModelInstanceDocument.create(ceramic, data, { model: MET_MODEL}) 
+    private static readonly NETWORK_MODEL_MAP: Record<Networks, StreamID> = {
+        [Networks.MAINNET] : StreamID.fromString('kjzl6hvfrbw6c6z82vn6tfx92nogxf0rukcibdxigity7xe69rptwmz0mb2itdv'),
+        [Networks.TESTNET_CLAY] : StreamID.fromString('kjzl6hvfrbw6c6z82vn6tfx92nogxf0rukcibdxigity7xe69rptwmz0mb2itdv'),
+        [Networks.DEV_UNSTABLE] : StreamID.fromString('kjzl6hvfrbw6c6z82vn6tfx92nogxf0rukcibdxigity7xe69rptwmz0mb2itdv'),
+        [Networks.LOCAL] : null,
+        [Networks.INMEMORY] : null
+    };
 
-     console.log(result)
-     return result
+    // Throws an error if network does not have an associated metric model
+    constructor(ceramic: CeramicApi, network: string) {
+        this.ceramic = ceramic;
+        const networkEnum = network as Networks;
+        this.modelId = MetricPublisher.NETWORK_MODEL_MAP[networkEnum];
+        if (! this.modelId) {
+           throw new Error(`No metric model available for network ${network}`)
+        }
+    }
+
+    public async publishMetric(data: PeriodicMetricEventV1): Promise<any> {
+        const result = await ModelInstanceDocument.create(this.ceramic, data, { model: this.modelId });
+        return result;
+    }
 }

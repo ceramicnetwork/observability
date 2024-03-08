@@ -1,7 +1,7 @@
 /* Model metrics accumulate and publish on a timer to ceramic */
 
 import type { CeramicApi } from '@ceramicnetwork/common'
-import { publishMetric, CeramicNode, PeriodicMetricEventV1 } from './publishMetrics.js'
+import { MetricPublisher, CeramicNode, PeriodicMetricEventV1 } from './publishMetrics.js'
 
 export const DEFAULT_PUBLISH_INTERVAL_MS = 60000 // one minute
 
@@ -23,6 +23,7 @@ const ERROR_SAMPLE_SIZE = 8
 
 interface StartOptions {
   ceramic: CeramicApi;
+  network: string;
   nodeId: string;
   intervalMS?: number;
   ceramicVersion?: string;
@@ -36,7 +37,7 @@ interface StartOptions {
 
 
 class _ModelMetrics {
-  protected ceramicApi: CeramicApi | undefined
+  protected publisher: MetricPublisher | undefined
   protected ceramicNode: CeramicNode | undefined
   protected metrics: Record<string, number>;
   protected sampleRecentErrors: string[]
@@ -71,6 +72,7 @@ class _ModelMetrics {
 
     const {
       ceramic,
+      network,
       intervalMS = DEFAULT_PUBLISH_INTERVAL_MS,
       ceramicVersion = '',
       ipfsVersion = '',
@@ -82,7 +84,16 @@ class _ModelMetrics {
       logger = null
     } = options;
 
-    this.ceramicApi = ceramic
+    this.logger = logger
+
+    try {
+      this.publisher = new MetricPublisher(ceramic, network)
+    } catch (error) {
+      this.publisher = null
+      this.logErr(`Unable to start publishing metrics: ${error.message}`)
+      return
+    }
+
     this.publishIntervalMS = intervalMS
 
     this.ceramicNode = {
@@ -96,9 +107,6 @@ class _ModelMetrics {
     }
 
     this.startPublishing()
-
-    // accept a logger from the caller
-    this.logger = logger
   }
 
 
@@ -111,6 +119,8 @@ class _ModelMetrics {
    * This may happen more than once during the observation interval and should be additive
    */
   count(name: Counter, value: number) {
+      if (!this.publisher) { return; }
+
       if (!this.metrics[name]) {
           this.metrics[name] = 0;
       }
@@ -128,11 +138,15 @@ class _ModelMetrics {
    * observations are made they will replace previous numbers as only one will be reported per interval
    */
   observe(name: Observable, value: number) {
+      if (!this.publisher) { return; }
+
       this.metrics[name] = value
   }
 
   /* specific function to record errors, which will keep a count and sample of errors */
   recordError(error: string) {
+      if (!this.publisher) { return; }
+
       this.count(Counter.RECENT_ERRORS, 1) 
       if (this.sampleRecentErrors.length >= ERROR_SAMPLE_SIZE) {
           return
@@ -142,6 +156,8 @@ class _ModelMetrics {
 
   /* Specific function to record an Anchor Request age, which will update the mean and max */
   recordAnchorRequestAgeMS(age: number) {
+      if (!this.publisher) { return; }
+
       this.totalAnchorAge += age
       this.totalAnchorCount += 1
       if (age > this.maxAnchorAge) {
@@ -187,7 +203,7 @@ class _ModelMetrics {
   }
   
   async publish() {
-      const result = await publishMetric(this.ceramicApi!, this.getMetrics());
+      const result = await this.publisher.publishMetric(this.getMetrics());
       return result.id
   }
 

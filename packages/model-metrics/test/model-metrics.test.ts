@@ -1,4 +1,5 @@
 import { expect, jest} from '@jest/globals'
+import { MetricPublisher } from '../src/MetricPublisher';
 
 const ceramicStub: any = {};
 let ModelMetrics;
@@ -7,19 +8,20 @@ let pubMock;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const nextTickPromise = () => new Promise(resolve => process.nextTick(resolve));
 
-
 describe('metrics publish at intervals', () => {
 
   beforeAll(async () => {
     jest.useFakeTimers()
+    pubMock = jest.fn().mockResolvedValue({ id: 'mock-model-metric-stream-id' });
 
-    jest.unstable_mockModule('../src/publishMetrics', () => ({
-      publishMetric: jest.fn().mockReturnValue({ id: 'mock-model-metric-stream-id' })
-    }));
+    jest.mock('../src/MetricPublisher', () => {
+      return {
+        MetricPublisher: jest.fn().mockImplementation(() => ({
+          publishMetric: pubMock
+          }))
+      };
+    });
 
-    // Import the module after mocking it to get the mocked export
-    pubMock = await import('../src/publishMetrics');
-    
     const modelMetricsModule = await import('../src/model-metrics');
     ModelMetrics = modelMetricsModule.ModelMetrics;    
 
