@@ -29,6 +29,16 @@ ModelMetrics.stopPublishing()
 ```
 
 
+## Future Updates
 
+If wishing to modify the metrics model, start by updating the model definition in the `./composites` directory, then
 ```ts
+composedb composite:create your-schema.graphql --output=../__generated__/definition.json --did-private-key=your-private-key
+cd ../__generated__
+composedb composite:deploy definition.json --ceramic-url=http://localhost:7007 --did-private-key=...
+
+composedb composite:compile definition.json definition.js
+```
+Depending on the changes made, code changes may need to be made as well, in particular start with the list of models defined in `src/publishMetrics.ts`
+
 

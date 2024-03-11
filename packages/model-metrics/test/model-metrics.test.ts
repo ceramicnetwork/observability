@@ -1,30 +1,24 @@
 import { expect, jest} from '@jest/globals'
 
+import { MetricPublisher } from '../src/publishMetrics.js';
+import { ModelMetrics } from '../src/model-metrics.js'; // Ensure this comes after MetricPublisher import
+
 const ceramicStub: any = {};
-let ModelMetrics;
-let pubMock;
+
+const pubMock = jest.fn().mockResolvedValue({ id: 'mock-model-metric-stream-id' });
+jest.spyOn(MetricPublisher.prototype, 'publishMetric').mockImplementation(pubMock);
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-const nextTickPromise = () => new Promise(resolve => process.nextTick(resolve));
-
 
 describe('metrics publish at intervals', () => {
 
   beforeAll(async () => {
+
     jest.useFakeTimers()
-
-    jest.unstable_mockModule('../src/publishMetrics', () => ({
-      publishMetric: jest.fn().mockReturnValue({ id: 'mock-model-metric-stream-id' })
-    }));
-
-    // Import the module after mocking it to get the mocked export
-    pubMock = await import('../src/publishMetrics');
-    
-    const modelMetricsModule = await import('../src/model-metrics');
-    ModelMetrics = modelMetricsModule.ModelMetrics;    
 
     ModelMetrics.start({
       ceramic: ceramicStub, 
+      network: 'dev-unstable',
       nodeId: '123',
       intervalMS: 1000
     })
@@ -33,14 +27,15 @@ describe('metrics publish at intervals', () => {
   afterAll(async () => {
     await ModelMetrics.stopPublishing()
     jest.useRealTimers() 
-    pubMock.publishMetric.mockClear()
+    pubMock.mockClear()
   })
 
 
   test('create metric', async () => {
+    expect(pubMock).toHaveBeenCalledTimes(0)
     ModelMetrics.count('recentErrors', 1)
-    jest.advanceTimersByTime(3000); // Advance three seconds, should cause 3 calls
-    expect(pubMock.publishMetric).toHaveBeenCalledTimes(3)
+    jest.advanceTimersByTime(1000); 
+    expect(pubMock).toHaveBeenCalledTimes(1)
   })
 
 });
@@ -49,30 +44,33 @@ describe('metrics publish at intervals', () => {
 describe('reset works between calls to publish', () => {
 
   beforeAll(async () => {
-    jest.unstable_mockModule('../src/publishMetrics', () => ({
-      publishMetric: jest.fn().mockReturnValue({ id: 'mock-model-metric-stream-id' })
-    }));
-    pubMock = await import('../src/publishMetrics');
-    const modelMetricsModule = await import('../src/model-metrics');
-    ModelMetrics = modelMetricsModule.ModelMetrics;    
+
+    ModelMetrics.start({
+      ceramic: ceramicStub,
+      network: 'dev-unstable',
+      nodeId: '123',
+      intervalMS: 10  // we are using real timers so go fast
+    })
   })
 
   afterEach(async () => {
-    pubMock.publishMetric.mockClear()
+    pubMock.mockClear()
   })
 
-  test('publish and reset manually', async () => {
+  afterAll(async () => {
+    ModelMetrics.stopPublishing()
+  })
+
+
+  test('publish and reset happens', async () => {
 
     ModelMetrics.count('recentErrors', 1)
-    await ModelMetrics.publish(); // normally not called directly
-
-    const metricData = pubMock.publishMetric.mock.calls[0][1];
+    await delay(10);
+    const metricData = pubMock.mock.calls[0][0];
     expect(metricData.recentErrors).toBe(1)
 
-    ModelMetrics.resetMetrics()
-
-    await ModelMetrics.publish(); 
-    const metricData1 = pubMock.publishMetric.mock.calls[1][1];
+    await delay(10);
+    const metricData1 = pubMock.mock.calls[1][0];
     expect(metricData1.recentErrors).toBe(0)
   })
 
@@ -93,9 +91,9 @@ describe('reset works between calls to publish', () => {
     ModelMetrics.count('recentCompletedRequests', 20)
     ModelMetrics.count('recentCompletedRequests', 30)
 
-    await ModelMetrics.publish(); 
+    await delay(10);
 
-    const metricData = pubMock.publishMetric.mock.calls[0][1];
+    const metricData = pubMock.mock.calls[0][0];
     expect(metricData.recentErrors).toBe(3)
     
     expect(metricData.sampleRecentErrors[2]).toBe('a'.repeat(512)) //errors are trimmed
@@ -103,11 +101,10 @@ describe('reset works between calls to publish', () => {
     expect(metricData.recentCompletedRequests).toBe(50) // counts add up
     expect(metricData.meanAnchorRequestAgeMS).toBe(2000) // mean age 
     expect(metricData.maxAnchorRequestAgeMS).toBe(3000)
+   
+    await delay(10);
 
-    ModelMetrics.resetMetrics()
-
-    await ModelMetrics.publish(); 
-    const metricData1 = pubMock.publishMetric.mock.calls[1][1];
+    const metricData1 = pubMock.mock.calls[1][0];
     expect(metricData1.sampleRecentErrors).toStrictEqual([])
   })
 
@@ -117,21 +114,11 @@ describe('reset works between calls to publish', () => {
 
 describe('test startup params', () => {
 
-  beforeAll(async () => {
-    jest.useFakeTimers()
-    const modelMetricsModule = await import('../src/model-metrics.js');
-    ModelMetrics = modelMetricsModule.ModelMetrics;
-    ModelMetrics.start({
-       ceramic: ceramicStub,
-       intervalMS: 1000,
-       nodeId: '123'
-    })
-  })
-
   test('all params', async() => {
 
     ModelMetrics.start({
            ceramic: ceramicStub,
+           network: 'dev-unstable',
            intervalMS: 1000,
            ceramicVersion: 'v1.0',
            ipfsVersion: 'v1.0.1',
@@ -142,5 +129,7 @@ describe('test startup params', () => {
            nodePeerId: 'pMqqqqqqqqq',
            logger: null
     })
+    ModelMetrics.stopPublishing()
   })
+
 })

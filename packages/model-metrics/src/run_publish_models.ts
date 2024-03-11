@@ -11,7 +11,7 @@ import { DID } from 'dids'
 import { getResolver } from 'key-did-resolver'
 import { fromString } from 'uint8arrays'
 import {readFileSync} from 'fs'
-import { publishMetric } from './publishMetrics.js'
+import { MetricPublisher } from './publishMetrics.js'
 
 const CERAMIC_URL = process.env.CERAMIC_URL;
 const ceramic = new CeramicClient(CERAMIC_URL);
@@ -41,7 +41,8 @@ const authenticate = async () => {
   }
 
   // Publish a model document
-  const result = await publishMetric(ceramic, data);
+  const publisher = new MetricPublisher(ceramic, 'dev')
+  const result = await publisher.publishMetric(data);
   console.log(result.id);
 })();
 
