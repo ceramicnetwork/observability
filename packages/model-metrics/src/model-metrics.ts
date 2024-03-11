@@ -187,7 +187,6 @@ class _ModelMetrics {
           recentErrors: this.metrics[Counter.RECENT_ERRORS] || 0,
           sampleRecentErrors: this.sampleRecentErrors
       };
-
       return record;
   }
 
@@ -216,12 +215,20 @@ class _ModelMetrics {
       clearInterval(this.publishIntervalId); // Clear existing interval if it's already running
     }
 
+    let isPublishing = false; // Flag to indicate if publish is currently running
+
     this.publishIntervalId = setInterval(async () => {
+        // skip if we are already trying to publish
+        if (isPublishing) return;
+        isPublishing = true;
+
         try {
             await this.publish();
             this.resetMetrics();
         } catch (error) {
             this.logErr("Error in publishing metrics: " + error);
+        } finally {
+            isPublishing = false;
         }
     }, this.publishIntervalMS);
 
