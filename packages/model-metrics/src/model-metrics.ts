@@ -154,9 +154,16 @@ class _ModelMetrics {
       this.sampleRecentErrors.push(error.substring(0, ERROR_MAX_LENGTH));
   }
 
-  /* Specific function to record an Anchor Request age, which will update the mean and max */
-  recordAnchorRequestAgeMS(age: number) {
+  /* Specific function to record an Anchor Request age from a request entry
+     This will update the mean and max calculated on publish */
+  recordAnchorRequestAgeMS(task: object) {
       if (!this.publisher) { return; }
+
+      try {
+        const age = Date.now() - Number(task.timestamp)
+      } catch {
+        return
+      }
 
       this.totalAnchorAge += age
       this.totalAnchorCount += 1

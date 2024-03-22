@@ -49,8 +49,7 @@ const authenticate = async () => {
     ceramic,
     "./src/__generated__/definition.json"
   );
-
-  await deployComposite.startIndexingOn(ceramic);
+  deployComposite.startIndexingOn(ceramic);
 
   // 
 })();
