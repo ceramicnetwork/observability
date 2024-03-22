@@ -8,7 +8,7 @@ interface MetricEvent
 type CeramicNode {
   id: String! @string(minLength: 1, maxLength: 1024)
   name: String @string(maxLength: 128)
-  nodeAuthDID: String @string(maxLength: 1024)
+  nodeAuthDID: String @string(maxLength: 256)
   IPAddress: String @string(maxLength: 64)
   PeerID: String @string(maxLength: 256)
   ceramicVersion: String @string(maxLength: 32)
@@ -36,6 +36,7 @@ type PeriodicMetricEventV1 implements MetricEvent
 
   meanAnchorRequestAgeMS: Int
   maxAnchorRequestAgeMS: Int
+  recentCreatedRequests: Int
   recentCompletedRequests: Int
   recentErrors: Int
 

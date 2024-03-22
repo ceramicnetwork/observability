@@ -37,11 +37,12 @@ const authenticate = async () => {
        id: '1234',
        name: 'Hello Metrics World',
     },
-    recentErrors: 2
+    recentErrors: 2,
+    sampleRecentErrors: ['oops', 'darn']
   }
 
   // Publish a model document
-  const publisher = new MetricPublisher(ceramic, 'dev')
+  const publisher = new MetricPublisher(ceramic, 'dev-unstable')
   const result = await publisher.publishMetric(data);
   console.log(result.id);
 })();

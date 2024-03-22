@@ -45,6 +45,8 @@ const authenticate = async () => {
     "./src/__generated__/definition.js"
   );
 
+  console.log("Written to ./src/__generated__/definition.js");
+
   const deployComposite = await readEncodedComposite(
     ceramic,
     "./src/__generated__/definition.json"
