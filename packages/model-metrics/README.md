@@ -6,23 +6,44 @@ Publishes metrics and Ceramic Node settings to the Metrics Model on Ceramic Netw
 
 Uses the decentralized CeramicNetwork to publish metrics and data about Ceramic Nodes
 
+## Enable Configuration
+
+In your `daemon.config.json` file (often found in ~/.ceramic directory), add the following setting:
+
+```
+"metrics": {
+    "metrics-publisher-enabled": true
+  }
+```
+and restart your ceramic daemon.  
+
+Since the code to record metrics will already be incorporated into the daemon, no further action is necessary.
+
+---
+
 ## Installation
 
+Note, this class will be included as a dependency in ceramic daemon, so installation is not necessary.
+
+However, if using in your own project, the package can be installed normally.
+
 ```sh
-npm install model-metrics
+npm install @ceramicnetwork/model-metrics
 ```
+
 
 ## Usage
 
 Import the class, start the metrics publishing service and record metrics.
 
 ```ts
-import { ModelMetrics } from '@ceramicnetwork/model-metrics'
+import { ModelMetrics, Counter, Observable } from '@ceramicnetwork/model-metrics'
 
-ModelMetrics.start(ceramic, 30000)
+ModelMetrics.start({ceramic: ceramic, network: 'dev-unstable', intervalMS: 30000})
 
-ModelMetrics.observe('totalPinnedStreams', 100)
-ModelMetrics.count('recentCompletedRequests', 20)
+ModelMetrics.observe(Observable.TOTAL_PINNED_STREAMS, 100)
+ModelMetrics.count(Counter.RECENT_COMPLETED_REQUESTS, 20)
+ModelMetris.recordError('oops')
 
 ModelMetrics.stopPublishing()
 

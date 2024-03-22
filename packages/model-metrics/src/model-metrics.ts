@@ -174,7 +174,7 @@ class _ModelMetrics {
 
   getMeanAnchorRequestAgeMS() {
       if (this.totalAnchorCount > 0) {
-         return this.totalAnchorAge / this.totalAnchorCount
+         return Math.round(this.totalAnchorAge / this.totalAnchorCount)
       } else {
          return 0
       }
