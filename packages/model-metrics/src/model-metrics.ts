@@ -204,7 +204,7 @@ class _ModelMetrics {
   resetMetrics(): void {
       // retain the observable values as some may be observed only once
       this.metrics = Object.values(Observable).reduce((acc, key) => {
-          acc[key] = metrics[key] || 0; // Use the existing value or 0 if not found
+          acc[key] = this.metrics[key] || 0; // Use the existing value or 0 if not found
           return acc;
       }, {} as { [key in Observable]: number });
 
