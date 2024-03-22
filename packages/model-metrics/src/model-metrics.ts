@@ -140,9 +140,10 @@ class _ModelMetrics {
    *
    * Generally these would be observed once at the start of the interval; if additional
    * observations are made they will replace previous numbers as only one will be reported per interval
+   * Unlike Counts, Observations are retained between intervals and may be recorded
+   * before publishing begins
    */
   observe(name: Observable, value: number) {
-      if (!this.publisher) { return; }
 
       this.metrics[name] = value
   }
@@ -201,7 +202,12 @@ class _ModelMetrics {
    * On publish, the counts are reset to 0
   */
   resetMetrics(): void {
-      this.metrics = {};
+      // retain the observable values as some may be observed only once
+      this.metrics = Object.values(Observable).reduce((acc, key) => {
+          acc[key] = metrics[key] || 0; // Use the existing value or 0 if not found
+          return acc;
+      }, {} as { [key in Observable]: number });
+
       this.sampleRecentErrors = [];
       this.totalAnchorAge = 0;
       this.totalAnchorCount = 0;

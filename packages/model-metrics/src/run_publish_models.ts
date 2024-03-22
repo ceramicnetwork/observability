@@ -37,6 +37,7 @@ const authenticate = async () => {
        id: '1234',
        name: 'Hello Metrics World',
     },
+    meanAnchorRequestAgeMS: Math.round(100/3),
     recentErrors: 2,
     sampleRecentErrors: ['oops', 'darn']
   }
