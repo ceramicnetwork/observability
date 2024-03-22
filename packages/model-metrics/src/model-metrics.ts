@@ -35,6 +35,10 @@ interface StartOptions {
   logger?: any;
 }
 
+interface TaskWithTimestamp {
+  timestamp: number;
+  [key: string]: any; // This allows for any number of additional fields of any type
+}
 
 class _ModelMetrics {
   protected publisher: MetricPublisher | undefined
@@ -156,14 +160,10 @@ class _ModelMetrics {
 
   /* Specific function to record an Anchor Request age from a request entry
      This will update the mean and max calculated on publish */
-  recordAnchorRequestAgeMS(task: object) {
+  recordAnchorRequestAgeMS(task: TaskWithTimestamp) {
       if (!this.publisher) { return; }
 
-      try {
-        const age = Date.now() - Number(task.timestamp)
-      } catch {
-        return
-      }
+      const age = Date.now() - task.timestamp
 
       this.totalAnchorAge += age
       this.totalAnchorCount += 1
