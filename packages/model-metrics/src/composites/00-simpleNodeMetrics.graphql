@@ -1,5 +1,5 @@
 
-interface MetricEvent
+interface CeramicNodeMetric
   @createModel(description: "Required metric event content interface") {
   ts: DateTime!
   ceramicNode: CeramicNode
