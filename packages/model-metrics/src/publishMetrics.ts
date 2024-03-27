@@ -41,9 +41,9 @@ export class MetricPublisher {
     private modelId: StreamID;
 
     private static readonly NETWORK_MODEL_MAP: Record<Networks, StreamID> = {
-        [Networks.MAINNET] : StreamID.fromString('kjzl6hvfrbw6c7kjl8p225jzy0mjxqo5xdcdt7eqsjv0519arqfda598zfgpfx9'),
-        [Networks.TESTNET_CLAY] : StreamID.fromString('kjzl6hvfrbw6c6z82vn6tfx92nogxf0rukcibdxigity7xe69rptwmz0mb2itdv'),
-        [Networks.DEV_UNSTABLE] : StreamID.fromString('kjzl6hvfrbw6c7kjl8p225jzy0mjxqo5xdcdt7eqsjv0519arqfda598zfgpfx9'),
+        [Networks.MAINNET] : StreamID.fromString('kjzl6hvfrbw6cb9pd0bl7zmm28h3qszh56ccpn50vsmrl7clroy4fvln00z7q6q'),
+        [Networks.TESTNET_CLAY] : StreamID.fromString('kjzl6hvfrbw6cb9pd0bl7zmm28h3qszh56ccpn50vsmrl7clroy4fvln00z7q6q'),
+        [Networks.DEV_UNSTABLE] : StreamID.fromString('kjzl6hvfrbw6cb9pd0bl7zmm28h3qszh56ccpn50vsmrl7clroy4fvln00z7q6q'),
         [Networks.LOCAL] : null,
         [Networks.INMEMORY] : null
     };
