@@ -9,7 +9,7 @@ Provides an interface for recording metrics and traces.
 ## Installation
 
 ```sh
-npm install service-metrics
+npm install @ceramicnetwork/observability
 ```
 
 ## Usage
@@ -21,14 +21,12 @@ NOTE that an OTLP collector host must be provided or the functions will not be o
 ```ts
 import { Metrics } from '@ceramicnetwork/observability'
 
-// TODO here
 ```
 
 
 ## Configuration
 
-TODO env vars
-
+Configuration settings should be passed to the `start` function which instantiates the metrics singleton instance.
 
 ```ts
 
