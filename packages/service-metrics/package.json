@@ -1,6 +1,6 @@
 {
   "name": "@ceramicnetwork/observability",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "Typescript library for instrumenting ceramic networks",
   "author": "Golda Velez <golda@3box.io>",
   "license": "(Apache-2.0 OR MIT)",
