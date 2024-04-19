@@ -36,7 +36,7 @@ interface Endable {
 interface Timeable {
   createdAt?: Date;
   updatedAt?: Date;
-  timestamp?: Number;
+  timestamp?: Number | Date;
 }
 
 class NullSpan implements Endable {
