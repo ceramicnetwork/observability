@@ -218,3 +218,63 @@ describe('test startup params', () => {
     )
   })
 })
+
+
+describe('test of metrics with instance identifier', () => {
+  let server
+
+  beforeAll(async () => {
+    server = createServer((req, res) => {
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk;
+      });
+      req.on('end', () => {
+        console.log(`Received metrics:\n${body}`);
+        res.end();
+      });
+    }).listen(3000);
+    ServiceMetrics.start('localhost:3000', 'test')
+    ServiceMetrics.setInstanceIdentifier("fred")
+  })
+
+  afterAll(async () => {
+    await server.close();
+    console.log('Server has been shut down');
+  })
+
+  test('create metric', async () => {
+    ServiceMetrics.count('test_metric', 1, {
+      anyparam: null,
+      otherparam: 'atring',
+      intparam: 2,
+    })
+    ServiceMetrics.record('test_metric', 1, {
+      anyparam: null,
+      otherparam: 'atring',
+      intparam: 2,
+    })
+    ServiceMetrics.observe('test_metric', 1, {
+      anyparam: null,
+      otherparam: 'atring',
+      intparam: 2,
+    })
+  })
+
+
+  test('instance id is inserted into parameters', async () => {
+
+    // get the counter to initialize
+    ServiceMetrics.count('testy', 1)   
+ 
+    let spy = jest.spyOn(ServiceMetrics.counters['testy'], 'add').mockImplementation(() => null)
+    
+    ServiceMetrics.count('testy', 1)
+    expect(spy).toHaveBeenCalledWith(1, {'instanceId': 'fred'})
+
+    ServiceMetrics.count('testy', 2, {'thing':'thong'})
+    expect(spy).toHaveBeenCalledWith(2, {'thing':'thong', 'instanceId': 'fred'})
+
+    spy.mockRestore()
+  })
+})

@@ -155,6 +155,7 @@ class _ServiceMetrics {
   protected tracer
   protected logger
   protected append_total_to_counters
+  protected instanceId
 
   private static instance: _ServiceMetrics
 
@@ -168,6 +169,7 @@ class _ServiceMetrics {
     this.tracer = null
     this.logger = null
     this.append_total_to_counters = true
+    this.instanceId = ''
   }
 
   public static getInstance(): _ServiceMetrics {
@@ -254,6 +256,28 @@ class _ServiceMetrics {
 
   }
 
+  /*
+   * Set an instance identifier for all metrics going forward
+   */
+  setInstanceIdentifier(instanceId: string) {
+    this.instanceId = instanceId
+  }
+
+  /*
+   * adjust metric parameters to include instanceIdentifier, if any
+   */
+  adjustParams(params?: any) {
+
+    // if we have an instance identifier, include it
+    if (this.instanceId) {
+       if (! params) {
+          return({'instanceId': this.instanceId})
+       }
+       params['instanceId'] = this.instanceId
+    }
+    return params
+  }
+
   // could have subclasses or specific functions with set params, but we want to
   // easily and quickly change what is recorded, there are no code dependencies on it
 
@@ -280,6 +304,9 @@ class _ServiceMetrics {
     if (!this.meter) {
       return
     }
+
+    const finalParams = this.adjustParams(params)
+
     // Create this counter if we have not already
     if (!(name in this.counters)) {
       const full_name = this.append_total_to_counters ?
@@ -287,8 +314,8 @@ class _ServiceMetrics {
       this.counters[name] = this.meter.createCounter(full_name)
     }
     // Add to the count
-    if (params) {
-      this.counters[name].add(value, params)
+    if (finalParams) {
+      this.counters[name].add(value, finalParams)
     } else {
       this.counters[name].add(value)
     }
@@ -300,6 +327,7 @@ class _ServiceMetrics {
     if (!this.meter) {
       return
     }
+
     // Create this ObservableGauge if we have not already
     if (!(name in this.gauges)) {
       this.gauges[name] = this.meter.createObservableGauge(`${this.caller}:${name}`)
@@ -312,8 +340,10 @@ class _ServiceMetrics {
       })
     }
 
+    const finalParams = this.adjustParams(params)
+
     // Record the observed value; it will be set in the callback when metrics are recorded
-    this.observations[name].push([value, params])
+    this.observations[name].push([value, finalParams])
   }
 
 
@@ -326,9 +356,12 @@ class _ServiceMetrics {
     if (!(name in this.histograms)) {
       this.histograms[name] = this.meter.createHistogram(`${this.caller}:${name}`)
     }
+
+    const finalParams = this.adjustParams(params)
+
     // Record the observed value
     if (params) {
-      this.histograms[name].record(value, params)
+      this.histograms[name].record(value, finalParams)
     } else {
       this.histograms[name].record(value)
     }
