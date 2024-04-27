@@ -247,13 +247,13 @@ class _ServiceMetrics {
     // Meter for calling application
     this.meter = meterProvider.getMeter(caller)
 
-
     // accept a logger from the caller
     this.logger = logger
 
     // behavior about counter naming to be backward-compatible
     this.append_total_to_counters = append_total_to_counters
-
+  
+    return Boolean(this.meter)    
   }
 
   /*
