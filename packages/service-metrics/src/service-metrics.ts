@@ -2,10 +2,8 @@
    metrics on an exporter */
 
 import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
-import exporterMetricsOtlpHttp from '@opentelemetry/exporter-metrics-otlp-http'
-const { OTLPMetricExporter } = exporterMetricsOtlpHttp
-import exporterTraceOtlpHttp from '@opentelemetry/exporter-trace-otlp-http'
-const { OTLPTraceExporter } = exporterTraceOtlpHttp
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import exporterPrometheus from '@opentelemetry/exporter-prometheus'
 const { PrometheusExporter } = exporterPrometheus
 
@@ -152,6 +150,7 @@ class _ServiceMetrics {
   protected readonly histograms
   protected readonly observations
   protected meter
+  protected meterProvider
   protected tracer
   protected logger
   protected append_total_to_counters
@@ -166,6 +165,7 @@ class _ServiceMetrics {
     this.observations = {}
     this.histograms = {}
     this.meter = null
+    this.meterProvider = null
     this.tracer = null
     this.logger = null
     this.append_total_to_counters = true
@@ -191,7 +191,7 @@ class _ServiceMetrics {
     exportTimeoutMillis: number = DEFAULT_EXPORT_TIMEOUT_MS
   ) {
     this.caller = caller
-    const meterProvider = new MeterProvider({
+    this.meterProvider = new MeterProvider({
       resource: new Resource({
         [SemanticResourceAttributes.SERVICE_NAME]: caller,
       }),
@@ -202,7 +202,7 @@ class _ServiceMetrics {
     }
     if (prometheusExportPort > 0) {
       const promExporter = new PrometheusExporter({ port: prometheusExportPort });
-      meterProvider.addMetricReader(promExporter);
+      this.meterProvider.addMetricReader(promExporter);
     }
 
 
@@ -214,7 +214,7 @@ class _ServiceMetrics {
         url: collectorURL,
         concurrencyLimit: CONCURRENCY_LIMIT,
       })
-      meterProvider.addMetricReader(
+      this.meterProvider.addMetricReader(
         new PeriodicExportingMetricReader({
           exporter: metricExporter,
           exportIntervalMillis: exportIntervalMillis,
@@ -245,15 +245,29 @@ class _ServiceMetrics {
     }
 
     // Meter for calling application
-    this.meter = meterProvider.getMeter(caller)
+    this.meter = this.meterProvider.getMeter(caller)
 
     // accept a logger from the caller
     this.logger = logger
 
     // behavior about counter naming to be backward-compatible
     this.append_total_to_counters = append_total_to_counters
+
+    // set the shutdown behavior to flush metrics on exit
+    process.on('SIGTERM', () => this.shutdown());
+    process.on('SIGINT', () => this.shutdown());
   
     return Boolean(this.meter)    
+  }
+
+  /*
+   * Shutdown gracefully exporting all final metrics
+   *
+   */
+  async shutdown() {
+    if (this.meterProvider) {
+      await this.meterProvider.shutdown()
+    }
   }
 
   /*
