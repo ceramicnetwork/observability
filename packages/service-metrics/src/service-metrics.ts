@@ -4,16 +4,12 @@
 import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import exporterPrometheus from '@opentelemetry/exporter-prometheus'
-const { PrometheusExporter } = exporterPrometheus
+import { PrometheusExporter } from '@opentelemetry/exporter-prometheus'
 
 import { BasicTracerProvider, TraceIdRatioBasedSampler,
   ParentBasedSampler, BatchSpanProcessor } from '@opentelemetry/sdk-trace-base'
-
-import semanticConventions from '@opentelemetry/semantic-conventions'
-const { SemanticResourceAttributes } = semanticConventions
-import resources from '@opentelemetry/resources'
-const { Resource } = resources
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+import { Resource } from '@opentelemetry/resources'
 import { trace, type ObservableResult, type TimeInput } from '@opentelemetry/api'
 
 import { Utils } from './utils.js'
