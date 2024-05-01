@@ -7,9 +7,8 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import exporterPrometheus from '@opentelemetry/exporter-prometheus'
 const { PrometheusExporter } = exporterPrometheus
 
-import sdkTraceBase from '@opentelemetry/sdk-trace-base'
-const { BasicTracerProvider, TraceIdRatioBasedSampler,
-  ParentBasedSampler, BatchSpanProcessor } = sdkTraceBase
+import { BasicTracerProvider, TraceIdRatioBasedSampler,
+  ParentBasedSampler, BatchSpanProcessor } from '@opentelemetry/sdk-trace-base'
 
 import semanticConventions from '@opentelemetry/semantic-conventions'
 const { SemanticResourceAttributes } = semanticConventions
