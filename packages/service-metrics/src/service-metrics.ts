@@ -209,6 +209,12 @@ class _ServiceMetrics {
         url: collectorURL,
         concurrencyLimit: CONCURRENCY_LIMIT,
       })
+
+      // check that interval is longer than timeout, and if not adjust
+      if (exportIntervalMillis < exportTimeoutMillis) {
+         exportTimeoutMillis = Math.floor(exportIntervalMillis / 2)
+      }
+
       this.meterProvider.addMetricReader(
         new PeriodicExportingMetricReader({
           exporter: metricExporter,
