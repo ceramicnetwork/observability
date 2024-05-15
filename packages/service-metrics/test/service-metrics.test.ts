@@ -217,6 +217,37 @@ describe('test startup params', () => {
            500
     )
   })
+
+   test('should throw error if exportIntervalMillis is less than exportTimeoutMillis', async () => {
+        expect(() => {
+            ServiceMetrics.start(
+                'localhost:3000',
+                'test',
+                1,
+                null,
+                false,
+                0,
+                500,  // exportIntervalMillis
+                1000  // exportTimeoutMillis
+            );
+        }).toThrowError(new Error('Invalid export and timeout intervals 500 and 1000. Export interval must be greater than timeout interval and nonzero.'));
+    })
+
+    test('should throw error if exportIntervalMillis is zero', async () => {
+        expect(() => {
+            ServiceMetrics.start(
+                'localhost:3000',
+                'test',
+                1,
+                null,
+                false,
+                0,
+                0, // exportIntervalMillis
+                0  // exportTimeoutMillis
+            );
+        }).toThrowError(new Error('Invalid export and timeout intervals 0 and 0. Export interval must be greater than timeout interval and nonzero.'));
+    })
+
 })
 
 
