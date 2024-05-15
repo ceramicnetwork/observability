@@ -202,6 +202,13 @@ class _ServiceMetrics {
 
 
     if (collectorHost) {
+
+      // Check for invalid intervals
+      if (exportIntervalMillis < exportTimeoutMillis || exportIntervalMillis === 0) {
+        throw new Error(`Invalid export and timeout intervals ${exportIntervalMillis} and ${exportTimeoutMillis}. ` +
+                        `Export interval must be greater than timeout interval and nonzero.`);
+      }
+
       const collectorURL = `http://${collectorHost}:4318/v1/metrics`
       const traceCollectorURL = `http://${collectorHost}:4318/v1/traces`
 
@@ -210,10 +217,6 @@ class _ServiceMetrics {
         concurrencyLimit: CONCURRENCY_LIMIT,
       })
 
-      // check that interval is longer than timeout, and if not adjust
-      if (exportIntervalMillis < exportTimeoutMillis) {
-         exportTimeoutMillis = Math.floor(exportIntervalMillis / 2)
-      }
 
       this.meterProvider.addMetricReader(
         new PeriodicExportingMetricReader({
