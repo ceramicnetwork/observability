@@ -213,10 +213,24 @@ describe('test startup params', () => {
            null,
            false,
            0,
-           1000,
-           500
-    )
-  })
+           1000, // exportIntervalMillis
+           800   // exportTimeoutMillis
+     )
+   })
+
+   test('we now accept strings and force numeric', async() => {
+
+    ServiceMetrics.start(
+           'localhost:3000', 
+           'test',
+           1,
+           null,
+           false,
+           0,
+           "1000", // exportIntervalMillis
+           "800"   // exportTimeoutMillis
+     )
+   })
 
    test('should throw error if exportIntervalMillis is less than exportTimeoutMillis', async () => {
         expect(() => {
