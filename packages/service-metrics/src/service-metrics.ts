@@ -137,6 +137,17 @@ export class TimeableMetric {
 
 }
 
+// Even though we have type number, it seems strings can get thru
+function enforceNumeric(param: any): number {
+    if (typeof param === 'number') {
+        return param;
+    } else if (typeof param === 'string') {
+        return parseInt(param)
+    } else {
+        throw new Error(`Invalid parameter type for ${param}, should be number`)
+    }
+}
+
 
 class _ServiceMetrics {
   protected caller
@@ -186,6 +197,12 @@ class _ServiceMetrics {
     exportTimeoutMillis: number = DEFAULT_EXPORT_TIMEOUT_MS
   ) {
     this.caller = caller
+
+    // ensure numerics
+    prometheusExportPort = enforceNumeric(prometheusExportPort)
+    exportIntervalMillis = enforceNumeric(exportIntervalMillis)
+    exportTimeoutMillis = enforceNumeric(exportTimeoutMillis)
+
     this.meterProvider = new MeterProvider({
       resource: new Resource({
         [SemanticResourceAttributes.SERVICE_NAME]: caller,
