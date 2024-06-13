@@ -40,7 +40,7 @@ interface TaskWithTimestamp {
   [key: string]: any; // This allows for any number of additional fields of any type
 }
 
-class _ModelMetrics {
+class _NodeMetrics {
   protected publisher: MetricPublisher | undefined
   protected ceramicNode: CeramicNode | undefined
   protected metrics: Record<string, number>;
@@ -52,7 +52,7 @@ class _ModelMetrics {
   private publishIntervalId: NodeJS.Timeout | null = null;
   private publishIntervalMS: number | null = null;
 
-  private static instance: _ModelMetrics
+  private static instance: _NodeMetrics
 
   private constructor() {
       this.metrics = {};
@@ -63,11 +63,11 @@ class _ModelMetrics {
       this.logger = null
   }
 
-  public static getInstance(): _ModelMetrics {
-    if (!_ModelMetrics.instance) {
-      _ModelMetrics.instance = new _ModelMetrics()
+  public static getInstance(): _NodeMetrics {
+    if (!_NodeMetrics.instance) {
+      _NodeMetrics.instance = new _NodeMetrics()
     }
-    return _ModelMetrics.instance
+    return _NodeMetrics.instance
   }
 
 
@@ -290,4 +290,4 @@ class _ModelMetrics {
   }
 }
 
-export const ModelMetrics = _ModelMetrics.getInstance()
+export const NodeMetrics = _NodeMetrics.getInstance()
