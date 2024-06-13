@@ -1,7 +1,7 @@
 import { expect, jest} from '@jest/globals'
 
 import { MetricPublisher } from '../src/publishMetrics.js';
-import { ModelMetrics } from '../src/model-metrics.js'; // Ensure this comes after MetricPublisher import
+import { NodeMetrics } from '../src/node-metrics.js'; // Ensure this comes after MetricPublisher import
 
 const ceramicStub: any = {};
 
@@ -16,7 +16,7 @@ describe('metrics publish at intervals', () => {
 
     jest.useFakeTimers()
 
-    ModelMetrics.start({
+    NodeMetrics.start({
       ceramic: ceramicStub, 
       network: 'dev-unstable',
       nodeId: '123',
@@ -25,7 +25,7 @@ describe('metrics publish at intervals', () => {
   })
 
   afterAll(async () => {
-    await ModelMetrics.stopPublishing()
+    await NodeMetrics.stopPublishing()
     jest.useRealTimers() 
     pubMock.mockClear()
   })
@@ -33,7 +33,7 @@ describe('metrics publish at intervals', () => {
 
   test('create metric', async () => {
     expect(pubMock).toHaveBeenCalledTimes(0)
-    ModelMetrics.count('recentErrors', 1)
+    NodeMetrics.count('recentErrors', 1)
     jest.advanceTimersByTime(1000); 
     expect(pubMock).toHaveBeenCalledTimes(1)
   })
@@ -45,7 +45,7 @@ describe('reset works between calls to publish', () => {
 
   beforeAll(async () => {
 
-    ModelMetrics.start({
+    NodeMetrics.start({
       ceramic: ceramicStub,
       network: 'dev-unstable',
       nodeId: '123',
@@ -58,13 +58,13 @@ describe('reset works between calls to publish', () => {
   })
 
   afterAll(async () => {
-    ModelMetrics.stopPublishing()
+    NodeMetrics.stopPublishing()
   })
 
 
   test('publish and reset happens', async () => {
 
-    ModelMetrics.count('recentErrors', 1)
+    NodeMetrics.count('recentErrors', 1)
     await delay(10);
     const metricData = pubMock.mock.calls[0][0];
     expect(metricData.recentErrors).toBe(1)
@@ -77,19 +77,19 @@ describe('reset works between calls to publish', () => {
 
   test('record multiple metrics', async () => {
 
-    ModelMetrics.recordError('test error 1')
-    ModelMetrics.recordError('test error 2')
-    ModelMetrics.recordError('a'.repeat(1000))
+    NodeMetrics.recordError('test error 1')
+    NodeMetrics.recordError('test error 2')
+    NodeMetrics.recordError('a'.repeat(1000))
 
-    ModelMetrics.recordAnchorRequestAgeMS(1000)
-    ModelMetrics.recordAnchorRequestAgeMS(3000)
-    ModelMetrics.recordAnchorRequestAgeMS(2000)
+    NodeMetrics.recordAnchorRequestAgeMS(1000)
+    NodeMetrics.recordAnchorRequestAgeMS(3000)
+    NodeMetrics.recordAnchorRequestAgeMS(2000)
 
-    ModelMetrics.observe('totalPinnedStreams', 100)
-    ModelMetrics.observe('totalPinnedStreams', 102) // second observation is stored
+    NodeMetrics.observe('totalPinnedStreams', 100)
+    NodeMetrics.observe('totalPinnedStreams', 102) // second observation is stored
 
-    ModelMetrics.count('recentCompletedRequests', 20)
-    ModelMetrics.count('recentCompletedRequests', 30)
+    NodeMetrics.count('recentCompletedRequests', 20)
+    NodeMetrics.count('recentCompletedRequests', 30)
 
     await delay(10);
 
@@ -116,7 +116,7 @@ describe('test startup params', () => {
 
   test('all params', async() => {
 
-    ModelMetrics.start({
+    NodeMetrics.start({
            ceramic: ceramicStub,
            network: 'dev-unstable',
            intervalMS: 1000,
@@ -129,7 +129,7 @@ describe('test startup params', () => {
            nodePeerId: 'pMqqqqqqqqq',
            logger: null
     })
-    ModelMetrics.stopPublishing()
+    NodeMetrics.stopPublishing()
   })
 
 })
