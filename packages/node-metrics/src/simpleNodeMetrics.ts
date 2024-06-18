@@ -48,4 +48,4 @@ type PeriodicMetricEventV1 implements MetricEvent
   sampleRecentErrors: [String] @string(maxLength: 512) @list(maxLength: 8)
 }
 
-`
+`;
