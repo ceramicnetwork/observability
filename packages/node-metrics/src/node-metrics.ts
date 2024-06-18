@@ -87,7 +87,9 @@ class _NodeMetrics {
       return str;
     };
 
-    const stringFields: [keyof StartOptions, number][] = [
+    type StringOptions = Pick<StartOptions, "nodeId" | "nodeName" | "nodeAuthDID" | "nodeIPAddr" | "nodePeerId" | "ceramicVersion" | "ipfsVersion">;
+
+    const stringFields: [keyof StringOptions, number][] = [
       ["nodeId", 1024],
       ["nodeName", 128],
       ["nodeAuthDID", 256],
@@ -99,9 +101,9 @@ class _NodeMetrics {
 
     stringFields.forEach(([field, length]) => {
       if (field in options) {
-        options[field] = truncateString(options[field], length, field);
+        (options as StringOptions)[field] = truncateString(options[field] as string, length, field);
       } else {
-        options[field] = "";
+        (options as StringOptions)[field] = "";
       }
     });
     return options;
