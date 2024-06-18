@@ -1,6 +1,6 @@
-# Model Metrics
+# Node Metrics
 
-Publishes metrics and Ceramic Node settings to the Metrics Model on Ceramic Network
+Publishes metrics about Ceramic Nodes, on the Ceramic Network
 
  ## Purpose
 
@@ -28,7 +28,7 @@ Note, this class will be included as a dependency in ceramic daemon, so installa
 However, if using in your own project, the package can be installed normally.
 
 ```sh
-npm install @ceramicnetwork/model-metrics
+npm install @ceramicnetwork/node-metrics
 ```
 
 
@@ -37,15 +37,15 @@ npm install @ceramicnetwork/model-metrics
 Import the class, start the metrics publishing service and record metrics.
 
 ```ts
-import { ModelMetrics, Counter, Observable } from '@ceramicnetwork/model-metrics'
+import { NodeMetrics, Counter, Observable } from '@ceramicnetwork/node-metrics'
 
-ModelMetrics.start({ceramic: ceramic, network: 'dev-unstable', intervalMS: 30000})
+NodeMetrics.start({ceramic: ceramic, network: 'dev-unstable', intervalMS: 30000})
 
-ModelMetrics.observe(Observable.TOTAL_PINNED_STREAMS, 100)
-ModelMetrics.count(Counter.RECENT_COMPLETED_REQUESTS, 20)
+NodeMetrics.observe(Observable.TOTAL_PINNED_STREAMS, 100)
+NodeMetrics.count(Counter.RECENT_COMPLETED_REQUESTS, 20)
 ModelMetris.recordError('oops')
 
-ModelMetrics.stopPublishing()
+NodeMetrics.stopPublishing()
 
 ```
 
