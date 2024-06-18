@@ -70,6 +70,37 @@ class _NodeMetrics {
     return _NodeMetrics.instance
   }
 
+  /* ensure the fields are valid for our CeramicNode type */
+  private normalize( options: StartOptions ) {
+
+    // mainly we need to ensure string lengths
+    const truncateString = (str: string, length: number, label: string) => {
+      if (str.length > length) {
+        this.logger?.warn?.(`${label}: value "${str}" longer than ${length}, truncating`);
+        return str.slice(0, length);
+      }
+      return str;
+    };
+
+    const stringFields: [keyof StartOptions, number][] = [
+          ['nodeId', 1024],
+          ['nodeName', 128],
+          ['nodeAuthDID', 256],
+          ['nodeIPAddr', 64],
+          ['nodePeerId', 256],
+          ['ceramicVersion', 32],
+          ['ipfsVersion', 32]
+    ]
+
+    stringFields.forEach(([field, length]) => {
+      if (field in options) {
+          options[field] = truncateString(options[field], length, field)
+      } else {
+          options[field] = ''
+      }
+    })
+    return options
+  }
 
   /* Set up the publisher at run time, with an authenticated ceramic node */
   start( options: StartOptions ) {
@@ -86,7 +117,7 @@ class _NodeMetrics {
       nodeIPAddr = '',
       nodePeerId = '',
       logger = null
-    } = options;
+    } = this.normalize(options);
 
     this.logger = logger
 
@@ -163,9 +194,12 @@ class _NodeMetrics {
      This will update the mean and max calculated on publish */
   recordAnchorRequestAgeMS(task: TaskWithTimestamp) {
       if (!this.publisher) { return; }
+      if (!task.timestamp) {
+          this.logErr("Call to recordAnchorRequestAgeMS without task.timestamp")
+          return;
+      }
 
       const age = Date.now() - task.timestamp
-
       this.totalAnchorAge += age
       this.totalAnchorCount += 1
       if (age > this.maxAnchorAge) {

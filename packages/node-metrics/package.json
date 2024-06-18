@@ -1,6 +1,6 @@
 {
   "name": "@ceramicnetwork/node-metrics",
-  "version": "1.0",
+  "version": "1.0.1",
   "description": "Typescript library for publishing metrics from Ceramic nodes, as ceramic model instance documents",
   "author": "Golda Velez <golda@3box.io>",
   "license": "(Apache-2.0 OR MIT)",
@@ -46,7 +46,8 @@
     "@composedb/devtools": "^0.6.1",
     "@composedb/devtools-node": "^0.6.1",
     "@types/node": "^20.11.16",
-    "jest": "29.7.0"
+    "jest": "29.7.0",
+    "jest-extended": "^4.0.2"
   },
   "dependencies": {
     "@ceramicnetwork/stream-model-instance": "^2.3.0",
