@@ -1,17 +1,16 @@
-import { Composite } from '@composedb/devtools'
-import { ComposeClient} from '@composedb/client'
-import { CeramicClient } from "@ceramicnetwork/http-client";
+import { Composite } from "@composedb/devtools";
+import { metricSchema } from "./simpleNodeMetrics.js";
+import type { CeramicApi } from "@ceramicnetwork/common";
 
-import { metricSchema } from './simpleNodeMetrics.js'
-
-
-import type { CeramicApi } from '@ceramicnetwork/common'
-
-export async function createMetricComposite(ceramic: CeramicApi): Promise<Composite> {
+export async function createMetricComposite(
+  ceramic: CeramicApi,
+): Promise<Composite> {
   console.log("Creating composite from");
   console.log(metricSchema);
-  const composite: Composite = await Composite.create({ ceramic, schema: metricSchema });
+  const composite: Composite = await Composite.create({
+    ceramic,
+    schema: metricSchema,
+  });
   console.log(composite);
   return composite;
 }
-
