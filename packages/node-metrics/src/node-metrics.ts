@@ -100,7 +100,7 @@ class _NodeMetrics {
     ];
 
     stringFields.forEach(([field, length]) => {
-      if (field in options) {
+      if (field in options && typeof options[field] === 'string') {
         (options as StringOptions)[field] = truncateString(options[field] as string, length, field);
       } else {
         (options as StringOptions)[field] = "";
