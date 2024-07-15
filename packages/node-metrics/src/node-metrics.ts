@@ -1,11 +1,13 @@
 /* Model metrics accumulate and publish on a timer to ceramic */
 
-import type { CeramicApi } from "@ceramicnetwork/common";
+import type { CeramicApi, Networks } from "@ceramicnetwork/common";
 import {
   MetricPublisher,
   CeramicNode,
   PeriodicMetricEventV1,
 } from "./publishMetrics.js";
+import { StreamID } from "@ceramicnetwork/streamid";
+import { NETWORK_MODEL_MAP } from "./constants.js";
 
 export const DEFAULT_PUBLISH_INTERVAL_MS = 60000; // one minute
 
@@ -72,6 +74,14 @@ class _NodeMetrics {
       _NodeMetrics.instance = new _NodeMetrics();
     }
     return _NodeMetrics.instance;
+  }
+
+  /**
+   * Returns the StreamID of the data Model used to publish metrics for the given Ceramic network.
+   * @param network
+   */
+  public getModel(network: Networks): StreamID {
+    return NETWORK_MODEL_MAP[network]
   }
 
   /* ensure the fields are valid for our CeramicNode type */
