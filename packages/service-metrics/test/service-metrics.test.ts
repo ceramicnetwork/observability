@@ -160,6 +160,44 @@ describe('simple test of metrics', () => {
     observeSpy.mockRestore()
   });
 
+
+  test('publish resets the values', () => {
+    let tmetric = new TimeableMetric(SinceField.TIMESTAMP, 'testMetric', 1000);
+    let observeSpy = jest.spyOn(ServiceMetrics, 'observe').mockImplementation(() => null)
+
+    tmetric.startPublishingStats();
+
+    let task: Timeable = { timestamp: Date.now() };
+
+    jest.advanceTimersByTime(100);
+    // event happens after 100 ms
+    tmetric.record(task)
+
+    // event happens after 200 ms
+    jest.advanceTimersByTime(100);
+    tmetric.record(task)
+
+    jest.advanceTimersByTime(2000); // Advance time by 2 seconds
+
+   
+    // Average of 100 and 200 is 150 
+    expect(observeSpy).toHaveBeenNthCalledWith(1, 'testMetric_mean', 150);
+
+    // Maximum time elapsed was 200 ms
+    expect(observeSpy).toHaveBeenNthCalledWith(2, 'testMetric_max', 200);
+
+    // After publishing, the mean is reset to NaN
+    expect(Number.isNaN(observeSpy.mock.calls[2][1])).toBe(true);
+
+    // After publishing, max is reset to 0
+    expect(observeSpy).toHaveBeenNthCalledWith(4, 'testMetric_max', 0);
+
+    tmetric.stopPublishingStats()
+    observeSpy.mockRestore()
+  });
+
+
+
   test('stopPublishingStats stops interval', () => {
     let tmetric = new TimeableMetric(SinceField.TIMESTAMP, 'testMetric', 1000);
     let countSpy = jest.spyOn(ServiceMetrics, 'count').mockImplementation(() => null)

@@ -71,6 +71,13 @@ export class TimeableMetric {
     }
   }
 
+  public reset() {
+    this.cnt = 0
+    this.totTime = 0
+    this.maxTime = 0
+  }
+
+
   public recordAll(tasks: Timeable[]) {
     for (const task of tasks) {
       this.record(task)
@@ -101,7 +108,8 @@ export class TimeableMetric {
   /**
   * Publishes the accumulated statistics.
   * This method can be invoked manually or automatically at set intervals.
-  * It publishes the total count, mean time, and maximum time for the given metric.
+  * It publishes the total count, mean time, and maximum time for the given metric,
+  * over the period since the last publish.
   *
   * @param {string} name - The name of the metric to publish statistics for.
   */
@@ -112,6 +120,7 @@ export class TimeableMetric {
     ServiceMetrics.count(name + '_total', this.cnt)
     ServiceMetrics.observe(name + '_mean', this.getMeanTime())
     ServiceMetrics.observe(name + '_max', this.maxTime)
+    this.reset()
   }
 
   startPublishingStats(): void {
